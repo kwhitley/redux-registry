@@ -4,7 +4,7 @@ Redux factory for reducing boilerplate when registering actions.  Register actio
 
 ##Example Usage
 
-`js
+```js
 import ReduxFactory from './redux-factory';
 import {Map, List} from 'immutable';
 
