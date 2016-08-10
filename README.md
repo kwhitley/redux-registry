@@ -103,13 +103,22 @@ let state = Map({
 });
 
 // RUN REDUCER ON ACTIONS (no need to create switch as action routing is handled internally)
-let action1 = register.create.addTodo({ text: 'foo' });
-let action2 = register.create.addTodo({ text: 'bar' });
-let action3 = register.create.TOGGLE_TODO({ index: 1 });
+let action1 = register.create.addTodo('foo');
+let action2 = register.create.addTodo('bar');
+let action3 = register.create.TOGGLE_TODO(1);
 
 state = register.reduce(state, action1);
 state = register.reduce(state, action2);
 state = register.reduce(state, action3);
+// Map({
+//  todos: List.of([
+//    { index: 0, text: 'foo', completed: false },
+//    { index: 1, text: 'bar', completed: true }
+//  ])
+// })
+
+// ALTERNATIVELY CAN REDUCE ARRAYS OF ACTIONS
+state = register.reduce(state, [action1, action2, action3]);
 // Map({
 //  todos: List.of([
 //    { index: 0, text: 'foo', completed: false },

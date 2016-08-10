@@ -210,4 +210,22 @@ describe('class ReduxRegistry', () => {
     });
   });
 
+  describe('reducer(state, [actions])', () => {
+    let register = registerWithTwoDefs;
+    let actions = [
+      register.create.addTodo('foo'),
+      register.create.addTodo('bar'),
+      register.create.TOGGLE_TODO(1)
+    ];
+    let state = testData.initialState;
+
+    it('correctly reduces array of actions', () => {
+      state = register.reducer(state, actions);
+      expect(state.get('todos').toJS()).to.eql([
+        { index: 0, text: 'foo', completed: false },
+        { index: 1, text: 'bar', completed: true }
+      ]);
+    });
+  });
+
 });

@@ -8,13 +8,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var ReduxFactory = function () {
-  function ReduxFactory() {
+var ReduxRegistry = function () {
+  function ReduxRegistry() {
     var _this = this;
 
     var init = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    _classCallCheck(this, ReduxFactory);
+    _classCallCheck(this, ReduxRegistry);
 
     this.create = this.creators = {};
     this.reduce = this.reducers = {};
@@ -31,7 +31,7 @@ var ReduxFactory = function () {
     return this;
   }
 
-  _createClass(ReduxFactory, [{
+  _createClass(ReduxRegistry, [{
     key: 'setInitialState',
     value: function setInitialState() {
       var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -153,7 +153,7 @@ var ReduxFactory = function () {
     }
   }]);
 
-  return ReduxFactory;
+  return ReduxRegistry;
 }();
 
-exports.default = ReduxFactory;
+exports.default = ReduxRegistry;

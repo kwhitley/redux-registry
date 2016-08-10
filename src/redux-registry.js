@@ -96,6 +96,17 @@ export default class ReduxRegistry {
   }
 
   reducer(state = this.initialState, action) {
+    // handle list of actions
+    if (Array.isArray(action)) {
+      let s = state;
+      action.forEach(a => {
+        s = this.reducer(s, a);
+      }, this);
+
+      return s;
+    }
+
+    // handle individual actions
     if (!action || !action.type) {
       return state;
     }
