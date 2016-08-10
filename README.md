@@ -2,6 +2,12 @@
 
 Redux registry for reducing boilerplate when registering actions.
 
+##Installation
+
+```js
+npm install --save redux-registry
+```
+
 ---
 
 I noticed more than a bit of uneeded verbosity in redux definitions, with
@@ -72,9 +78,9 @@ register
 ;
 
 // CREATING ACTIONS (equivalent methods)
-register.addTodo.create({ text: 'foo' });
-register.ADD_TODO.create({ text: 'foo' });
-register.get('ADD_TODO').create({ text: 'foo' });
+register.addTodo.create('foo');
+register.ADD_TODO.create('foo');
+register.get('ADD_TODO').create('foo');
 // { type: 'ADD_TODO', text: 'foo' }
 
 // QUICK INDEX OF REGISTERED PAIRS

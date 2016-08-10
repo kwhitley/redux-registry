@@ -1,6 +1,6 @@
 {
   "name": "redux-registry",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Redux registry for cleaner action definition",
   "main": "lib/index.js",
   "typings": "./index.d.ts",
