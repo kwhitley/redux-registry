@@ -146,7 +146,6 @@ var ReduxRegistry = function () {
         var _ret = function () {
           var s = state;
           action.forEach(function (a) {
-            console.log('processing action on state', s, a);
             s = _this3.reducer(s, a);
           }, _this3);
 
