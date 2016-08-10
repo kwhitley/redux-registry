@@ -2,11 +2,14 @@
 
 Redux registry for reducing boilerplate when registering actions.
 
-##Installation
+###Installation
 
 ```js
 npm install --save redux-registry
 ```
+
+###Dependencies
+none!
 
 ---
 
@@ -39,7 +42,7 @@ func(state, action) signature.
 import {Map, List} from 'immutable';
 
 // IMPORT REDUXREGISTRY LIB
-import ReduxRegister from './redux-registry';
+import ReduxRegistry from 'redux-registry';
 
 let register = new ReduxRegistry;
 

@@ -99,7 +99,6 @@ export default class ReduxRegistry {
     if (Array.isArray(action)) {
       let s = state;
       action.forEach(a => {
-        console.log('processing action on state', s, a);
         s = this.reducer(s, a);
       }, this);
 

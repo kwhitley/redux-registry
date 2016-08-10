@@ -1,16 +1,7 @@
 {
   "name": "redux-registry",
-  "version": "0.0.4",
-  "description": "Redux registry for cleaner action definition",
-  "main": "lib/index.js",
-  "typings": "./index.d.ts",
-  "files": [
-    "dist",
-    "lib",
-    "es",
-    "src",
-    "index.d.ts"
-  ],
+  "version": "0.0.5",
+  "description": "Redux registry class for cleaner action+reducer definition",
   "scripts": {
     "clean": "rimraf lib dist es coverage",
     "lint": "eslint src test",
@@ -26,16 +17,13 @@
   },
   "keywords": [
     "redux",
+    "boilerplate",
+    "register",
+    "factory",
     "reducer",
-    "state",
-    "predictable",
-    "functional",
-    "immutable",
-    "hot",
-    "live",
-    "replay",
-    "flux",
-    "elm"
+    "creator",
+    "actions",
+    "helper"
   ],
   "authors": [
     "Kevin R. Whitley <kevin@krwhitley.com> (https://github.com/kwhitley)"
@@ -56,22 +44,16 @@
     "chai": "^3.5.0",
     "chai-immutable": "^1.6.0",
     "check-es3-syntax-cli": "0.0.2",
-    "cross-env": "^1.0.7",
     "eslint": "^1.10.3",
-    "eslint-config-rackt": "^1.1.1",
-    "eslint-plugin-react": "^3.16.1",
     "expect": "^1.8.0",
-    "glob": "^6.0.4",
     "immutable": "^3.8.1",
-    "isparta": "^4.0.0",
     "mocha": "^2.5.3",
     "redux": "^3.5.2",
     "rimraf": "^2.3.4",
-    "rxjs": "^5.0.0-beta.6",
     "uglifyjs": "^2.4.10",
     "webpack": "^1.9.6"
   },
-  "npmName": "redux",
+  "npmName": "redux-registry",
   "npmFileMap": [
     {
       "basePath": "/dist/",
