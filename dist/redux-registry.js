@@ -16,8 +16,8 @@ var ReduxFactory = function () {
 
     _classCallCheck(this, ReduxFactory);
 
-    this.create = {};
-    this.reduce = {};
+    this.create = this.creators = {};
+    this.reduce = this.reducers = {};
     this.setInitialState().setDefs().setPrefix();
 
     Object.keys(init).forEach(function (key) {
@@ -93,14 +93,30 @@ var ReduxFactory = function () {
 
       // add reducer reference to .reduce index
       this.reduce[def.name] = this.reduce[alias] = def.reduce;
+
       return this;
     }
   }, {
     key: 'remove',
     value: function remove(name) {
-      this.defs = this.defs.filter(function (d) {
-        return d.name !== name && d.alias !== name;
+      // remove from definitions
+      var match = this.defs.find(function (d) {
+        return d.name === name || d.alias === name;
       });
+
+      if (!match) {
+        throw new ReferenceError('cannot find \'' + name + '\' to remove');
+      }
+
+      this.defs = this.defs.filter(function (d) {
+        return d !== match;
+      });
+      delete this.create[match.name];
+      delete this.create[match.alias];
+      delete this.reduce[match.name];
+      delete this.reduce[match.alias];
+
+      return this;
     }
   }, {
     key: 'getNames',

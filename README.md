@@ -8,37 +8,39 @@ I noticed more than a bit of uneeded verbosity in redux definitions, with
 most people defining constants at the top, adding loose action creators and reducer functions,
 then wiring it all up with a switch.  In order to simplify the process I made the following assumptions:
 
-1. Action Names (e.g. 'ADD_TODO') can largely be extracted
+- Action Names (e.g. 'ADD_TODO') can largely be extracted
 from the creator function itself (create dummy action and
 examine 'type' attribute).  This is what most tend to route
 off of in the reducer function, which means instead of defining
 at the top and reusing, we can use that as an index lookup.
 
-2. Reducers naturally occur with the matching action creator,
+- Reducers naturally occur with the matching action creator,
 so why not define them together?  Limitation: reducers should be defined as:
 ```js
   func(state, action)
 ```
 Taking the full action as a second param, rather than custom subsets.
 
-3. By doing this, we eliminate the need for redefining the function
-signature for the reducer, and make the assumption they can handle based on a
+- By doing this, we eliminate the need for redefining the reducer function
+calls for the reducer, and make the assumption they use a
 func(state, action) signature.
 
 ##Example Usage
 
 ```js
-import ReduxRegister from './redux-registry';
+
+// NOT REQUIRED
 import {Map, List} from 'immutable';
 
-let register = new ReduxRegister;
-let state = Map({
-  todos: List()
-});
+// IMPORT REDUXREGISTRY LIB
+import ReduxRegister from './redux-registry';
 
+let register = new ReduxRegistry;
+
+// REGISTER ACTIONCREATORS+REDUCER PAIRS
 register
   .add({
-    alias: 'addTodo',
+    alias: 'addTodo', // optional alias to avoid UPPER_SNAKE_CASE references in your app
     create: function(text) {
       return {
         type: 'ADD_TODO',
@@ -69,20 +71,18 @@ register
   })
 ;
 
-// CREATING ACTIONS
-let action
-  = register.addTodo.create({ text: 'foo' });
-  = register.ADD_TODO.create({ text: 'foo' });
-  = register.get('ADD_TODO').create({ text: 'foo' });
-;
+// CREATING ACTIONS (equivalent methods)
+register.addTodo.create({ text: 'foo' });
+register.ADD_TODO.create({ text: 'foo' });
+register.get('ADD_TODO').create({ text: 'foo' });
 // { type: 'ADD_TODO', text: 'foo' }
 
 // QUICK INDEX OF REGISTERED PAIRS
-let idnex = register.getNames();
+register.getNames();
 // ['ADD_TODO', 'TOGGLE_TODO']
 
 // INDEX OF ACTION CREATORS (for redux/react)
-let actionCreators = register.creators;
+register.creators;
 // {
 //    'addTodo': [Function],
 //    'ADD_TODO': [Function],
@@ -90,19 +90,31 @@ let actionCreators = register.creators;
 //  }
 
 // INDEX OF REDUCERS (for redux/react)
-let reducers = register.reducers;
+register.reducers;
 // {
 //    'addTodo': [Function],
 //    'ADD_TODO': [Function],
 //    'TOGGLE_TODO': [Function]
 //  }
 
-// REGISTER REDUCER (no need to create switch as action routing is handled internally)
-state = register.reduce(state, register.ADD_TODO.create({ text: 'foo' }));
-// state == Map({
-  todos: List.of([
-    { type: 'ADD_TODO', text: 'foo', completed: false }
-  ])
-})
+// CREATE AN INITIAL APP STATE
+let state = Map({
+  todos: List()
+});
+
+// RUN REDUCER ON ACTIONS (no need to create switch as action routing is handled internally)
+let action1 = register.create.addTodo({ text: 'foo' });
+let action2 = register.create.addTodo({ text: 'bar' });
+let action3 = register.create.TOGGLE_TODO({ index: 1 });
+
+state = register.reduce(state, action1);
+state = register.reduce(state, action2);
+state = register.reduce(state, action3);
+// Map({
+//  todos: List.of([
+//    { index: 0, text: 'foo', completed: false },
+//    { index: 1, text: 'bar', completed: true }
+//  ])
+// })
 
 `

@@ -1,4 +1,4 @@
-export default class ReduxFactory {
+export default class ReduxRegistry {
   constructor(init = {}) {
     this.create = this.creators = {};
     this.reduce = this.reducers = {};
