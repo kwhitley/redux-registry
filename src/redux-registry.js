@@ -1,42 +1,26 @@
-export default class ReduxRegistry {
-  constructor(init = {}) {
-    this.create = this.creators = {};
-    this.reduce = this.reducers = {};
-    this
-      .setInitialState()
-      .setDefs()
-      .setPrefix()
-    ;
+export default function ReduxRegistry(init) {
+  var initialState = {};
 
-    Object.keys(init).forEach(key => {
-      let setterName = 'set' + key[0].toUpperCase() + key.slice(1);
-      let setter = this[setterName];
-      if (!setter) {
-        throw new ReferenceError(`function ${setterName}() not found in ReduxFactory`);
-      }
-      setter && setter.call(this, init[key]);
-    });
-    return this;
-  }
 
-  setInitialState(state = {}) {
-    this.initialState = state;
+
+  this.setInitialState = function(state = {}) {
+    initialState = state;
     this.state = state;
     return this;
-  }
+  };
 
-  setDefs(defs = []) {
+  this.setDefs = function(defs = []) {
     this.defs = defs;
     defs.forEach(def => this.add(def));
     return this;
-  }
+  };
 
-  setPrefix(prefix = '') {
+  this.setPrefix = function(prefix = '') {
     this.prefix = prefix;
     return this;
-  }
+  };
 
-  add(def) {
+  this.add = function(def) {
     if (!def.create) {
       throw new Error('ReduxFactory: no create() function defined');
     }
@@ -50,7 +34,7 @@ export default class ReduxRegistry {
       } else {
         def.name = name;
       }
-    }
+    };
 
     // add shorthand .remove() handle
     def.remove = (function() {
@@ -68,9 +52,9 @@ export default class ReduxRegistry {
     this.reduce[def.name] = this.reduce[alias] = def.reduce;
 
     return this;
-  }
+  };
 
-  remove(name) {
+  this.remove = function(name) {
     // remove from definitions
     let match = this.defs.find(d => d.name === name || d.alias === name);
 
@@ -85,17 +69,17 @@ export default class ReduxRegistry {
     delete this.reduce[match.alias];
 
     return this;
-  }
+  };
 
-  getNames() {
+  this.getNames = function() {
     return this.defs.map(def => def.name);
-  }
+  };
 
-  get(name) {
+  this.get = function(name) {
     return this.defs.find(def => def.name === name || def.alias === name);
-  }
+  };
 
-  reducer(state = this.initialState, action) {
+  this.reducer = function(state = initialState, action) {
     if (Array.isArray(action)) {
       let s = state;
       action.forEach(a => {
@@ -117,5 +101,24 @@ export default class ReduxRegistry {
     }
 
     return reducer(state, action);
-  }
+  };
+
+  this.create = this.creators = {};
+  this.reduce = this.reducers = {};
+  this
+    .setInitialState()
+    .setDefs()
+    .setPrefix()
+  ;
+
+  Object.keys(init || {}).forEach(key => {
+    let setterName = 'set' + key[0].toUpperCase() + key.slice(1);
+    let setter = this[setterName];
+    if (!setter) {
+      throw new ReferenceError(`function ${setterName}() not found in ReduxFactory`);
+    }
+    setter && setter.call(this, init[key]);
+  });
+
+  return this;
 }
