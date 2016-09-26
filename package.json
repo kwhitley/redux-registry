@@ -1,7 +1,7 @@
 {
   "name": "redux-registry",
   "main": "./dist/redux-registry.js",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Redux registry class for cleaner action+reducer definition",
   "scripts": {
     "clean": "rimraf lib dist es coverage",
