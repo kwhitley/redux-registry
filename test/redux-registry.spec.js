@@ -183,12 +183,6 @@ describe('class ReduxRegistry', () => {
       expect(register.reducer(1)).to.equal(1);
     });
 
-    it('throws error if action is not found', () => {
-      let fn = function() { register.reducer(1, { type: 'BOGUS', foo: 'bar' }); };
-
-      expect(fn).to.throw(ReferenceError);
-    });
-
     it('returns a default state of {} if not defined through initialState/setInitialState()', () => {
       expect(register.reducer()).to.eql({});
     });

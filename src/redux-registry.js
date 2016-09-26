@@ -102,12 +102,8 @@ export default function ReduxRegistry(init) {
     let reducer = reducers[action.type];
 
     if (!reducer) {
-      // console.log('reducers', reducers);
-      // throw new ReferenceError(`ReduxRegistry: reducer for '${action.type}' not defined`);
       return state;
     }
-
-    // console.log('new state', reducer(state, action).toJS());
 
     let state2 = reducer(state1, action);
 
@@ -115,7 +111,6 @@ export default function ReduxRegistry(init) {
       console.log(`after dispatching ${action.type}, state ${state1===state2 ? 'DID' : 'did not'} mutate`);
     }
 
-    window.state = state2;
     return state2;
   }).bind(this);
 

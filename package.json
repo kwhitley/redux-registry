@@ -1,5 +1,6 @@
 {
   "name": "redux-registry",
+  "main": "./dist/redux-registry.js",
   "version": "0.0.7",
   "description": "Redux registry class for cleaner action+reducer definition",
   "scripts": {
@@ -54,14 +55,6 @@
     "webpack": "^1.9.6"
   },
   "npmName": "redux-registry",
-  "npmFileMap": [
-    {
-      "basePath": "/dist/",
-      "files": [
-        "*.js"
-      ]
-    }
-  ],
   "babel": {
     "presets": [
       "es2015"
