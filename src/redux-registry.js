@@ -1,11 +1,11 @@
 export default function ReduxRegistry(init) {
   var initialState = {};
 
-
-
   this.setInitialState = function(state = {}) {
     initialState = state;
     this.state = state;
+
+    // console.log('this reference from setInitialState()', this);
     return this;
   };
 
@@ -22,15 +22,15 @@ export default function ReduxRegistry(init) {
 
   this.add = function(def) {
     if (!def.create) {
-      throw new Error('ReduxFactory: no create() function defined');
+      throw new Error('ReduxRegistry: no create() function defined');
     }
     if (!def.reduce) {
-      throw new Error('ReduxFactory: no reduce() function defined');
+      throw new Error('ReduxRegistry: no reduce() function defined');
     }
     if (!def.name) {
       let name = def.create() && def.create().type;
       if (!name) {
-        throw new Error('ReduxFactory: \'type\' not defined for creator function');
+        throw new Error('ReduxRegistry: \'type\' not defined for creator function');
       } else {
         def.name = name;
       }
@@ -79,7 +79,13 @@ export default function ReduxRegistry(init) {
     return this.defs.find(def => def.name === name || def.alias === name);
   };
 
-  this.reducer = function(state = initialState, action) {
+  this.deserializeState = function(fn, state) {
+    return fn(state);
+  };
+
+  this.reducer = (function(state = initialState, action) {
+    let state1 = state;
+
     if (Array.isArray(action)) {
       let s = state;
       action.forEach(a => {
@@ -89,22 +95,32 @@ export default function ReduxRegistry(init) {
       return s;
     }
 
-    if (!action || !action.type) {
+    if (!action || !action.type || action.type.indexOf('@@') === 0) {
       return state;
     }
 
-    let reducer = this.reduce[action.type];
+    let reducer = reducers[action.type];
 
     if (!reducer) {
-      throw new ReferenceError(`ReduxFactory: reducer for '${action.type}' not defined`);
+      // console.log('reducers', reducers);
+      // throw new ReferenceError(`ReduxRegistry: reducer for '${action.type}' not defined`);
       return state;
     }
 
-    return reducer(state, action);
-  };
+    // console.log('new state', reducer(state, action).toJS());
 
-  this.create = this.creators = {};
-  this.reduce = this.reducers = {};
+    let state2 = reducer(state1, action);
+
+    if (state1 === state2) {
+      console.log(`after dispatching ${action.type}, state ${state1===state2 ? 'DID' : 'did not'} mutate`);
+    }
+
+    window.state = state2;
+    return state2;
+  }).bind(this);
+
+  let creators = this.create = this.creators = {};
+  let reducers = this.reduce = this.reducers = {};
   this
     .setInitialState()
     .setDefs()
@@ -115,7 +131,7 @@ export default function ReduxRegistry(init) {
     let setterName = 'set' + key[0].toUpperCase() + key.slice(1);
     let setter = this[setterName];
     if (!setter) {
-      throw new ReferenceError(`function ${setterName}() not found in ReduxFactory`);
+      throw new ReferenceError(`function ${setterName}() not found in ReduxRegistry`);
     }
     setter && setter.call(this, init[key]);
   });
