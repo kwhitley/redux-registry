@@ -1,6 +1,6 @@
 {
   "name": "redux-registry",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Redux registry class for cleaner action+reducer definition",
   "scripts": {
     "clean": "rimraf lib dist es coverage",
