@@ -107,10 +107,6 @@ export default function ReduxRegistry(init) {
 
     let state2 = reducer(state1, action);
 
-    if (state1 === state2) {
-      console.log(`after dispatching ${action.type}, state ${state1===state2 ? 'DID' : 'did not'} mutate`);
-    }
-
     return state2;
   }).bind(this);
 
