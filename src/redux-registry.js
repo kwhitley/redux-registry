@@ -5,7 +5,6 @@ export const ReduxRegister = function(namespace) {
   this.creators = {}
   this.reducers = {}
 
-  console.log('creating register', namespace, this.creators)
   var initialState = {}
   this._namespace = namespace
 
@@ -13,7 +12,6 @@ export const ReduxRegister = function(namespace) {
     initialState = state
     this.state = state
 
-    // console.log('this reference from setInitialState()', this)
     return this
   }
 
@@ -35,9 +33,6 @@ export const ReduxRegister = function(namespace) {
   }
 
   this.add = function(def) {
-    // if (!def.create) {
-    //   throw new Error('ReduxRegistry: no create() function defined')
-    // }
     if (!def.reduce) {
       throw new Error('ReduxRegistry: no reduce() function defined')
     }
@@ -53,8 +48,6 @@ export const ReduxRegister = function(namespace) {
 
     // action creators get auto-typed
     def.create = createWithAutoType(def.namespacedName)(def.create)
-
-    // console.log('creating dummy action', def.create('foo'))
 
     // add shorthand .remove() handle
     def.remove = (function() {
@@ -120,10 +113,6 @@ export const ReduxRegister = function(namespace) {
 
     let reducer = this.reducers[action.type]
 
-    console.log('action.type', action.type)
-    console.log('reducer', reducer)
-
-
     if (!reducer) {
       return state
     }
@@ -160,7 +149,6 @@ export const ReduxRegistry = function() {
     return Object.keys(actionsMap).reduce((map, key) => {
       let actionRefs = actionsMap[key].split('.')
       let actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0]
-      console.log('this.getActions', actionRefs[0], this.getActions())
       let branch = this.getActions()[actionRefs[0]]
       let dispatchers = this._bindActionCreators(branch, dispatch)
 
@@ -185,7 +173,6 @@ export const ReduxRegistry = function() {
   }, {})
 
   this.setConnect = (fn) => {
-    console.log('adding react-redux connect', fn, this)
     this._connect = fn;
     return this
   }
@@ -194,7 +181,6 @@ export const ReduxRegistry = function() {
 
   this.addRegisters = (registers = {}) => {
     this.registers = registers
-    console.log('this.registers', this.registers)
 
     // embed actions
     this.actions = Object.keys(this.registers).reduce((out, key) => {

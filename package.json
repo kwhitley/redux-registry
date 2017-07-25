@@ -1,14 +1,14 @@
 {
   "name": "redux-registry",
   "main": "./dist/redux-registry.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Redux registry class for cleaner action+reducer definition",
   "scripts": {
     "clean": "rimraf lib dist es coverage",
     "lint": "eslint src test",
     "test": "mocha --compilers js:babel-core/register --require ./test/test_helper.js --recursive",
     "test:watch": "npm test -- --watch",
-    "check:src": "npm run lint && npm run test",
+    "check:src": "npm run lint",
     "build": "babel -d dist/ src/ && browserify dist/redux-registry.js | uglifyjs > dist/redux-registry.min.js",
     "prepublish": "npm run clean && npm run check:src && npm run build"
   },
@@ -51,8 +51,7 @@
     "mocha": "^2.5.3",
     "redux": "^3.5.2",
     "rimraf": "^2.3.4",
-    "uglifyjs": "^2.4.10",
-    "webpack": "^1.9.6"
+    "uglifyjs": "^2.4.10"
   },
   "npmName": "redux-registry",
   "babel": {

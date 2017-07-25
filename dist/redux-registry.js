@@ -25,7 +25,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
   this.creators = {};
   this.reducers = {};
 
-  console.log('creating register', namespace, this.creators);
   var initialState = {};
   this._namespace = namespace;
 
@@ -35,7 +34,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
     initialState = state;
     this.state = state;
 
-    // console.log('this reference from setInitialState()', this)
     return this;
   };
 
@@ -65,9 +63,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
   };
 
   this.add = function (def) {
-    // if (!def.create) {
-    //   throw new Error('ReduxRegistry: no create() function defined')
-    // }
     if (!def.reduce) {
       throw new Error('ReduxRegistry: no reduce() function defined');
     }
@@ -85,8 +80,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
 
     // action creators get auto-typed
     def.create = createWithAutoType(def.namespacedName)(def.create);
-
-    // console.log('creating dummy action', def.create('foo'))
 
     // add shorthand .remove() handle
     def.remove = function () {
@@ -170,9 +163,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
 
     var reducer = this.reducers[action.type];
 
-    console.log('action.type', action.type);
-    console.log('reducer', reducer);
-
     if (!reducer) {
       return state;
     }
@@ -214,7 +204,6 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
       return Object.keys(actionsMap).reduce(function (map, key) {
         var actionRefs = actionsMap[key].split('.');
         var actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0];
-        console.log('this.getActions', actionRefs[0], _this4.getActions());
         var branch = _this4.getActions()[actionRefs[0]];
         var dispatchers = _this4._bindActionCreators(branch, dispatch);
 
@@ -247,7 +236,6 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   };
 
   this.setConnect = function (fn) {
-    console.log('adding react-redux connect', fn, _this4);
     _this4._connect = fn;
     return _this4;
   };
@@ -260,7 +248,6 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
     var registers = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
     _this4.registers = registers;
-    console.log('this.registers', _this4.registers);
 
     // embed actions
     _this4.actions = Object.keys(_this4.registers).reduce(function (out, key) {
