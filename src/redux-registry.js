@@ -1,131 +1,220 @@
-export default function ReduxRegistry(init) {
-  var initialState = {};
+export const ReduxRegister = function(namespace) {
+  const createWithAutoType = (name) => (creator) => (value) => Object.assign({ type: name }, creator(value))
+  const namespacedName = (namespace) => (name) => `${namespace}:${name}`
+
+  this.creators = {}
+  this.reducers = {}
+
+  console.log('creating register', namespace, this.creators)
+  var initialState = {}
+  this._namespace = namespace
 
   this.setInitialState = function(state = {}) {
-    initialState = state;
-    this.state = state;
+    initialState = state
+    this.state = state
 
-    // console.log('this reference from setInitialState()', this);
-    return this;
-  };
+    // console.log('this reference from setInitialState()', this)
+    return this
+  }
+
+  this.setNamespace = (name) => {
+    this._namespace = name
+
+    return this
+  }
 
   this.setDefs = function(defs = []) {
-    this.defs = defs;
-    defs.forEach(def => this.add(def));
-    return this;
-  };
+    this.defs = defs
+    defs.forEach(def => this.add(def))
+    return this
+  }
 
   this.setPrefix = function(prefix = '') {
-    this.prefix = prefix;
-    return this;
-  };
+    this.prefix = prefix
+    return this
+  }
 
   this.add = function(def) {
-    if (!def.create) {
-      throw new Error('ReduxRegistry: no create() function defined');
-    }
+    // if (!def.create) {
+    //   throw new Error('ReduxRegistry: no create() function defined')
+    // }
     if (!def.reduce) {
-      throw new Error('ReduxRegistry: no reduce() function defined');
+      throw new Error('ReduxRegistry: no reduce() function defined')
     }
-    if (!def.name) {
-      let name = def.create() && def.create().type;
-      if (!name) {
-        throw new Error('ReduxRegistry: \'type\' not defined for creator function');
-      } else {
-        def.name = name;
-      }
-    };
+
+    // name === alias in register definitions
+    def.name = def.name || def.alias
+    def.namespacedName = namespacedName(this._namespace)(def.name)
+
+    // create default action creator
+    if (!def.create) {
+      def.create = (value) => ({ value })
+    }
+
+    // action creators get auto-typed
+    def.create = createWithAutoType(def.namespacedName)(def.create)
+
+    // console.log('creating dummy action', def.create('foo'))
 
     // add shorthand .remove() handle
     def.remove = (function() {
-      this.remove(def.name);
-    }).bind(this);
+      this.remove(def.name)
+    }).bind(this)
 
     // add definition
-    this.defs.push(def);
-    let alias = def.alias || def.name;
+    this.defs.push(def)
 
     // add action creator reference to .create index
-    this.create[def.name] = this.create[alias] = def.create;
+    this.creators[def.name] = def.create
 
     // add reducer reference to .reduce index
-    this.reduce[def.name] = this.reduce[alias] = def.reduce;
+    this.reducers[def.namespacedName] = def.reduce
 
-    return this;
-  };
+    return this
+  }
 
   this.remove = function(name) {
     // remove from definitions
-    let match = this.defs.find(d => d.name === name || d.alias === name);
+    let match = this.defs.find(d => d.name === name)
 
     if (!match) {
-      throw new ReferenceError(`cannot find '${name}' to remove`);
+      throw new ReferenceError(`cannot find '${name}' to remove`)
     }
 
-    this.defs = this.defs.filter(d => d !== match);
-    delete this.create[match.name];
-    delete this.create[match.alias];
-    delete this.reduce[match.name];
-    delete this.reduce[match.alias];
+    this.defs = this.defs.filter(d => d !== match)
+    delete this.creators[name]
+    delete this.reducers[match.namespacedName]
 
-    return this;
-  };
+    return this
+  }
 
   this.getNames = function() {
-    return this.defs.map(def => def.name);
-  };
+    return this.defs.map(def => def.name)
+  }
 
   this.get = function(name) {
-    return this.defs.find(def => def.name === name || def.alias === name);
-  };
+    return this.defs.find(def => def.name === name || def.alias === name)
+  }
 
   this.deserializeState = function(fn, state) {
-    return fn(state);
-  };
+    return fn(state)
+  }
 
   this.reducer = (function(state = initialState, action) {
-    let state1 = state;
+    let state1 = state
 
+    console.log('reducing action', action)
     if (Array.isArray(action)) {
-      let s = state;
+      let s = state
       action.forEach(a => {
-        s = this.reducer(s, a);
-      }, this);
+        s = this.reducer(s, a)
+      }, this)
 
-      return s;
+      return s
     }
+
 
     if (!action || !action.type || action.type.indexOf('@@') === 0) {
-      return state;
+      return state
     }
 
-    let reducer = reducers[action.type];
+    let reducer = this.reducers[action.type]
+
+    console.log('action.type', action.type)
+    console.log('reducer', reducer)
+
 
     if (!reducer) {
-      return state;
+      return state
     }
 
-    let state2 = reducer(state1, action);
+    let state2 = reducer(state1, action)
 
-    return state2;
-  }).bind(this);
+    return state2
+  }).bind(this)
 
-  let creators = this.create = this.creators = {};
-  let reducers = this.reduce = this.reducers = {};
   this
     .setInitialState()
     .setDefs()
     .setPrefix()
-  ;
 
-  Object.keys(init || {}).forEach(key => {
-    let setterName = 'set' + key[0].toUpperCase() + key.slice(1);
-    let setter = this[setterName];
-    if (!setter) {
-      throw new ReferenceError(`function ${setterName}() not found in ReduxRegistry`);
-    }
-    setter && setter.call(this, init[key]);
-  });
-
-  return this;
+  return this
 }
+
+
+export const ReduxRegistry = function() {
+  // need to be connected or registry will fail
+  this._bindActionCreators = () => {}
+  this._connect = () => {}
+  this.registers = {}
+
+  // NEW METHOD TO CONNECT NAMED PROPS TO STATE VALUES/BRANCHES
+  this.connectedProps = (propsMap = {}) => (state) => Object.keys(propsMap).reduce((map, key) => {
+    map[key] = state.getIn(propsMap[key].split('.'))
+
+    return map
+  }, {})
+
+  // NEW METHOD TO CONNECT NAMED PROPS TO ACTION DISPATCHERS
+  this.connectedDispatchers = (actionsMap = {}) => (dispatch) => {
+    return Object.keys(actionsMap).reduce((map, key) => {
+      let actionRefs = actionsMap[key].split('.')
+      let actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0]
+      console.log('this.getActions', actionRefs[0], this.getActions())
+      let branch = this.getActions()[actionRefs[0]]
+      let dispatchers = this._bindActionCreators(branch, dispatch)
+
+      map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers
+
+      return map
+    }, {})
+  }
+
+  // CONNECTS REACT COMPONENT (param1) PROPS TO OBJECT MAP OF PROPS/DISPATCHERS (param2)
+  this.connect = (map) => (component) =>
+    this._connect(this.connectedProps(map.props), this.connectedDispatchers(map.dispatchers))(component)
+
+  this.getReducers = () => Object.keys(this.registers).reduce((out, key) => {
+    out[key] = this.registers[key].reducer
+    return out
+  }, {})
+
+  this.getActions = () => Object.keys(this.registers).reduce((out, key) => {
+    out[key] = this.registers[key].creators
+    return out
+  }, {})
+
+  this.setConnect = (fn) => {
+    console.log('adding react-redux connect', fn, this)
+    this._connect = fn;
+    return this
+  }
+
+  this.setBindActionCreators = (fn) => { this._bindActionCreators = fn; return this }
+
+  this.addRegisters = (registers = {}) => {
+    this.registers = registers
+    console.log('this.registers', this.registers)
+
+    // embed actions
+    this.actions = Object.keys(this.registers).reduce((out, key) => {
+      out[key] = this.registers[key].creators
+      return out
+    }, {})
+
+    // embed reducers
+    this.reducers = Object.keys(this.registers).reduce((out, key) => {
+      out[key] = this.registers[key].reducer
+      return out
+    }, {})
+
+    return this
+  }
+
+  return this
+}
+
+const globalRegistry = new ReduxRegistry()
+
+export const connect = globalRegistry.connect
+export default globalRegistry

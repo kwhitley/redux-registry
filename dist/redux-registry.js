@@ -6,11 +6,28 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-exports.default = ReduxRegistry;
-function ReduxRegistry(init) {
-  var _this3 = this;
+var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
+  var _this = this;
 
+  var createWithAutoType = function createWithAutoType(name) {
+    return function (creator) {
+      return function (value) {
+        return Object.assign({ type: name }, creator(value));
+      };
+    };
+  };
+  var namespacedName = function namespacedName(namespace) {
+    return function (name) {
+      return namespace + ':' + name;
+    };
+  };
+
+  this.creators = {};
+  this.reducers = {};
+
+  console.log('creating register', namespace, this.creators);
   var initialState = {};
+  this._namespace = namespace;
 
   this.setInitialState = function () {
     var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -18,18 +35,24 @@ function ReduxRegistry(init) {
     initialState = state;
     this.state = state;
 
-    // console.log('this reference from setInitialState()', this);
+    // console.log('this reference from setInitialState()', this)
     return this;
   };
 
+  this.setNamespace = function (name) {
+    _this._namespace = name;
+
+    return _this;
+  };
+
   this.setDefs = function () {
-    var _this = this;
+    var _this2 = this;
 
     var defs = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
     this.defs = defs;
     defs.forEach(function (def) {
-      return _this.add(def);
+      return _this2.add(def);
     });
     return this;
   };
@@ -42,20 +65,28 @@ function ReduxRegistry(init) {
   };
 
   this.add = function (def) {
-    if (!def.create) {
-      throw new Error('ReduxRegistry: no create() function defined');
-    }
+    // if (!def.create) {
+    //   throw new Error('ReduxRegistry: no create() function defined')
+    // }
     if (!def.reduce) {
       throw new Error('ReduxRegistry: no reduce() function defined');
     }
-    if (!def.name) {
-      var name = def.create() && def.create().type;
-      if (!name) {
-        throw new Error('ReduxRegistry: \'type\' not defined for creator function');
-      } else {
-        def.name = name;
-      }
-    };
+
+    // name === alias in register definitions
+    def.name = def.name || def.alias;
+    def.namespacedName = namespacedName(this._namespace)(def.name);
+
+    // create default action creator
+    if (!def.create) {
+      def.create = function (value) {
+        return { value: value };
+      };
+    }
+
+    // action creators get auto-typed
+    def.create = createWithAutoType(def.namespacedName)(def.create);
+
+    // console.log('creating dummy action', def.create('foo'))
 
     // add shorthand .remove() handle
     def.remove = function () {
@@ -64,13 +95,12 @@ function ReduxRegistry(init) {
 
     // add definition
     this.defs.push(def);
-    var alias = def.alias || def.name;
 
     // add action creator reference to .create index
-    this.create[def.name] = this.create[alias] = def.create;
+    this.creators[def.name] = def.create;
 
     // add reducer reference to .reduce index
-    this.reduce[def.name] = this.reduce[alias] = def.reduce;
+    this.reducers[def.namespacedName] = def.reduce;
 
     return this;
   };
@@ -78,7 +108,7 @@ function ReduxRegistry(init) {
   this.remove = function (name) {
     // remove from definitions
     var match = this.defs.find(function (d) {
-      return d.name === name || d.alias === name;
+      return d.name === name;
     });
 
     if (!match) {
@@ -88,10 +118,8 @@ function ReduxRegistry(init) {
     this.defs = this.defs.filter(function (d) {
       return d !== match;
     });
-    delete this.create[match.name];
-    delete this.create[match.alias];
-    delete this.reduce[match.name];
-    delete this.reduce[match.alias];
+    delete this.creators[name];
+    delete this.reducers[match.namespacedName];
 
     return this;
   };
@@ -113,19 +141,20 @@ function ReduxRegistry(init) {
   };
 
   this.reducer = function () {
-    var _this2 = this;
+    var _this3 = this;
 
     var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
     var action = arguments[1];
 
     var state1 = state;
 
+    console.log('reducing action', action);
     if (Array.isArray(action)) {
       var _ret = function () {
         var s = state;
         action.forEach(function (a) {
-          s = _this2.reducer(s, a);
-        }, _this2);
+          s = _this3.reducer(s, a);
+        }, _this3);
 
         return {
           v: s
@@ -139,7 +168,10 @@ function ReduxRegistry(init) {
       return state;
     }
 
-    var reducer = reducers[action.type];
+    var reducer = this.reducers[action.type];
+
+    console.log('action.type', action.type);
+    console.log('reducer', reducer);
 
     if (!reducer) {
       return state;
@@ -150,18 +182,105 @@ function ReduxRegistry(init) {
     return state2;
   }.bind(this);
 
-  var creators = this.create = this.creators = {};
-  var reducers = this.reduce = this.reducers = {};
   this.setInitialState().setDefs().setPrefix();
 
-  Object.keys(init || {}).forEach(function (key) {
-    var setterName = 'set' + key[0].toUpperCase() + key.slice(1);
-    var setter = _this3[setterName];
-    if (!setter) {
-      throw new ReferenceError('function ' + setterName + '() not found in ReduxRegistry');
-    }
-    setter && setter.call(_this3, init[key]);
-  });
+  return this;
+};
+
+var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
+  var _this4 = this;
+
+  // need to be connected or registry will fail
+  this._bindActionCreators = function () {};
+  this._connect = function () {};
+  this.registers = {};
+
+  // NEW METHOD TO CONNECT NAMED PROPS TO STATE VALUES/BRANCHES
+  this.connectedProps = function () {
+    var propsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    return function (state) {
+      return Object.keys(propsMap).reduce(function (map, key) {
+        map[key] = state.getIn(propsMap[key].split('.'));
+
+        return map;
+      }, {});
+    };
+  };
+
+  // NEW METHOD TO CONNECT NAMED PROPS TO ACTION DISPATCHERS
+  this.connectedDispatchers = function () {
+    var actionsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    return function (dispatch) {
+      return Object.keys(actionsMap).reduce(function (map, key) {
+        var actionRefs = actionsMap[key].split('.');
+        var actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0];
+        console.log('this.getActions', actionRefs[0], _this4.getActions());
+        var branch = _this4.getActions()[actionRefs[0]];
+        var dispatchers = _this4._bindActionCreators(branch, dispatch);
+
+        map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers;
+
+        return map;
+      }, {});
+    };
+  };
+
+  // CONNECTS REACT COMPONENT (param1) PROPS TO OBJECT MAP OF PROPS/DISPATCHERS (param2)
+  this.connect = function (map) {
+    return function (component) {
+      return _this4._connect(_this4.connectedProps(map.props), _this4.connectedDispatchers(map.dispatchers))(component);
+    };
+  };
+
+  this.getReducers = function () {
+    return Object.keys(_this4.registers).reduce(function (out, key) {
+      out[key] = _this4.registers[key].reducer;
+      return out;
+    }, {});
+  };
+
+  this.getActions = function () {
+    return Object.keys(_this4.registers).reduce(function (out, key) {
+      out[key] = _this4.registers[key].creators;
+      return out;
+    }, {});
+  };
+
+  this.setConnect = function (fn) {
+    console.log('adding react-redux connect', fn, _this4);
+    _this4._connect = fn;
+    return _this4;
+  };
+
+  this.setBindActionCreators = function (fn) {
+    _this4._bindActionCreators = fn;return _this4;
+  };
+
+  this.addRegisters = function () {
+    var registers = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _this4.registers = registers;
+    console.log('this.registers', _this4.registers);
+
+    // embed actions
+    _this4.actions = Object.keys(_this4.registers).reduce(function (out, key) {
+      out[key] = _this4.registers[key].creators;
+      return out;
+    }, {});
+
+    // embed reducers
+    _this4.reducers = Object.keys(_this4.registers).reduce(function (out, key) {
+      out[key] = _this4.registers[key].reducer;
+      return out;
+    }, {});
+
+    return _this4;
+  };
 
   return this;
-}
+};
+
+var globalRegistry = new ReduxRegistry();
+
+var connect = exports.connect = globalRegistry.connect;
+exports.default = globalRegistry;
