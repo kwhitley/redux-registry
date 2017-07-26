@@ -84,36 +84,6 @@ import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import { combineReducers } from 'redux-immutable'
 
-// import ReduxRegistry and extract reducers from shared instance
-import ReduxRegistry from 'redux-registry' // could have been a separate instantiated copy
-let { reducers } = ReduxRegistry
-
-// create redux state store with default state of Map()
-const appReducer = combineReducers(reducers)
-
-// define root reducer
-const rootReducer = (state, action) => appReducer(state, action)
-
-// create redux store
-const store = createStore(
-  rootReducer,
-  Map(),
-  window.devToolsExtension ? window.devToolsExtension() : c => c
-)
-
-ReactDOM.render(<Provider store={store}><AppComponent /></Provider>)
-```
-
-
-###### App.js (root of client app)
-```js
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { List, Map, fromJS } from 'immutable'
-import { createStore, applyMiddleware } from 'redux'
-import { Provider } from 'react-redux'
-import { combineReducers } from 'redux-immutable'
-
 // example connected component
 import App from './App'
 
@@ -135,6 +105,32 @@ const store = createStore(
 )
 
 ReactDOM.render(<Provider store={store}><App unconnectedProp={'foo'} /></Provider>)
+```
+
+
+###### App.js
+```js
+import React, { Component } from 'react'
+import { connect } from 'redux-registry'
+
+export const App = ({ unconnectedProp, username, user }) => (
+  <div className="app">
+    <div>User: {username}</div>
+    <div>Age: {user.age} (can pull entire state branches or named nodes if using immutable)</div>
+    <div>this prop came from upstream: { unconnectedProp }</div>
+    <button onClick={logoutAction}>Logout fires action dispatcher</button>
+  </div>
+)
+
+export default connect({
+  props: {
+    username: 'user.name',
+    user: 'user',
+  },
+  dispatchers: {
+    'logoutAction': 'user.logout'
+  }
+})(App)
 ```
 
 
