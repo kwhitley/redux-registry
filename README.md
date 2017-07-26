@@ -16,9 +16,11 @@ enough flexibility to be useful.
 npm install redux-registry
 ```
 
-## Dependencies
+## Dependencies (only if using in React)
 
-None (unless using Redis)
+```
+npm install --save react-redux redux
+```
 
 ## Usage
 
@@ -64,15 +66,17 @@ import ReduxRegistry from 'redux-registry'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
+// import registers
+import register1 from './register1.js'
+import register2 from './another-register.js'
+import register3 from './we-could-have-added-just-one-without-the-array.js'
+
 // set "connect" and "bindActionCreators" functions, then add registers
 export default ReduxRegistry
   .setConnect(connect) // internally sets "connect" function
   .setBindActionCreators(bindActionCreators) // internally sets "bindActionCreators" function
-  .add([
-    require('./register1.js'),
-    require('./another-register.js'),
-    require('./we-could-have-added-just-one-without-the-array.js')
-  ])
+  .add(register1) // can register each register individually
+  .add([ register2, register3 ]) // or in an array
 ```
 
 ###### index.js (root of client app)
@@ -88,7 +92,7 @@ import { combineReducers } from 'redux-immutable'
 import App from './App'
 
 // import ReduxRegistry and extract reducers from shared instance
-import ReduxRegistry from 'redux-registry' // could have been a separate instantiated copy
+import ReduxRegistry from './registry' // note the export default in registry.js above
 let { reducers } = ReduxRegistry
 
 // create redux state store with default state of Map()
