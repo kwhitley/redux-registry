@@ -49,7 +49,9 @@
     "expect": "^1.8.0",
     "immutable": "^3.8.1",
     "mocha": "^2.5.3",
-    "redux": "^3.5.2",
+    "react": "^15.6.1",
+    "react-redux": "^5.0.5",
+    "redux": "^3.7.2",
     "rimraf": "^2.3.4",
     "uglifyjs": "^2.4.10"
   },

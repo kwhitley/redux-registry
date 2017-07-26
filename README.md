@@ -1,138 +1,140 @@
-# redux-registry
+React+Redux (without the boilerplate)
+=======
 
-Redux registry for reducing boilerplate when registering actions.
+[![npm version](https://badge.fury.io/js/redux-registry.svg)](https://badge.fury.io/js/redux-registry)
+[![Build Status via Travis CI](https://travis-ci.org/kwhitley/redux-registry.svg?branch=master)](https://travis-ci.org/kwhitley/redux-registry)
 
-###Installation
+## Why?
 
-```js
-npm install --save redux-registry
+Because Redux is amazing, but the verbosity (const definitions, switch statements in primary
+reducers, etc) and fragmentation seems backwards.  This module adds a heap of magic with just
+enough flexibility to be useful.
+
+## Installation
+
+```
+npm install redux-registry
 ```
 
-###Dependencies
-none!
+## Dependencies
 
----
+None (unless using Redis)
 
-I noticed more than a bit of uneeded verbosity in redux definitions, with
-most people defining constants at the top, adding loose action creators and reducer functions,
-then wiring it all up with a switch.  In order to simplify the process I made the following assumptions:
+## Usage
 
-- Action Names (e.g. 'ADD_TODO') can largely be extracted
-from the creator function itself (create dummy action and
-examine 'type' attribute).  This is what most tend to route
-off of in the reducer function, which means instead of defining
-at the top and reusing, we can use that as an index lookup.
-
-- Reducers naturally occur with the matching action creator,
-so why not define them together?  Limitation: reducers should be defined as:
+###### register1.js
 ```js
-  func(state, action)
-```
-Taking the full action as a second param, rather than custom subsets.
+import { ReduxRegister } from 'redux-registry'
+import { fromJS } from 'immutable'
 
-- By doing this, we eliminate the need for redefining the reducer function
-calls for the reducer, and make the assumption they use a
-func(state, action) signature.
+// Define the register and give it a name.  This will create a "user" branch in the root scope.
+let register = new ReduxRegister('user')
 
-##Example Usage
-
-```js
-
-// NOT REQUIRED
-import {Map, List} from 'immutable';
-
-// IMPORT REDUXREGISTRY LIB
-import ReduxRegistry from 'redux-registry';
-
-let register = new ReduxRegistry;
-
-// REGISTER ACTIONCREATORS+REDUCER PAIRS
+// Give it an initial state (null in this case), and append "actions" that reduce the state
 register
+  .setInitialState(null)
   .add({
-    alias: 'addTodo', // optional alias to avoid UPPER_SNAKE_CASE references in your app
-    create: function(text) {
-      return {
-        type: 'ADD_TODO',
-        text: text
-      }
-    },
-    reduce: function(state, action) {
-      return state.updateIn(['todos'], todos => todos.push({
-        index: todos.size,
-        text: action.text,
-        completed: false
-      }));
-    }
+    name: 'login',
+    create: (user) => ({ user }), // no "type" attribute is needed, as everything is internally namespaced
+    reduce: (state, action) => fromJS(action.user)
   })
   .add({
-    create: function(index) {
-      return {
-        type: 'TOGGLE_TODO',
-        index: index
-      }
-    },
-    reduce: function(state, action) {
-      return state.updateIn(['todos', action.index], todo => {
-        todo.completed = !todo.completed;
-        return todo;
-      });
-    }
+    name: 'login2', // no action creator is even required if the only payload can be a single "value" attribute
+    reduce: (state, action) => fromJS(action.value)
+  })
+  .add({
+    name: 'logout',
+    reduce: (state) => null
+  })
+  .add({
+    name: 'refresh',
+    reduce: (state, action) => state.set('expires', action.value)
   })
 ;
 
-// CREATING ACTIONS (equivalent methods)
-register.addTodo.create('foo');
-register.ADD_TODO.create('foo');
-register.get('ADD_TODO').create('foo');
-// { type: 'ADD_TODO', text: 'foo' }
+export default register
+```
 
-// QUICK INDEX OF REGISTERED PAIRS
-register.getNames();
-// ['ADD_TODO', 'TOGGLE_TODO']
+###### registry.js
+```js
+// imports a shared instance by default
+import ReduxRegistry from 'redux-registry'
 
-// INDEX OF ACTION CREATORS (for redux/react)
-register.creators;
-// {
-//    'addTodo': [Function],
-//    'ADD_TODO': [Function],
-//    'TOGGLE_TODO': [Function]
-//  }
+// to prevent version restrictions on peer dependencies, import your own
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 
-// INDEX OF REDUCERS (for redux/react)
-register.reducers;
-// {
-//    'addTodo': [Function],
-//    'ADD_TODO': [Function],
-//    'TOGGLE_TODO': [Function]
-//  }
+// set "connect" and "bindActionCreators" functions, then add registers
+export default ReduxRegistry
+  .setConnect(connect) // internally sets "connect" function
+  .setBindActionCreators(bindActionCreators) // internally sets "bindActionCreators" function
+  .add([
+    require('./register1.js'),
+    require('./another-register.js'),
+    require('./we-could-have-added-just-one-without-the-array.js')
+  ])
+```
 
-// CREATE AN INITIAL APP STATE
-let state = Map({
-  todos: List()
-});
+###### index.js (root of client app)
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { List, Map, fromJS } from 'immutable'
+import { createStore, applyMiddleware } from 'redux'
+import { Provider } from 'react-redux'
+import { combineReducers } from 'redux-immutable'
 
-// RUN REDUCER ON ACTIONS (no need to create switch as action routing is handled internally)
-let action1 = register.create.addTodo('foo');
-let action2 = register.create.addTodo('bar');
-let action3 = register.create.TOGGLE_TODO(1);
+// import ReduxRegistry and extract reducers from shared instance
+import ReduxRegistry from 'redux-registry' // could have been a separate instantiated copy
+let { reducers } = ReduxRegistry
 
-state = register.reduce(state, action1);
-state = register.reduce(state, action2);
-state = register.reduce(state, action3);
-// Map({
-//  todos: List.of([
-//    { index: 0, text: 'foo', completed: false },
-//    { index: 1, text: 'bar', completed: true }
-//  ])
-// })
+// create redux state store with default state of Map()
+const appReducer = combineReducers(reducers)
 
-// ALTERNATIVELY CAN REDUCE ARRAYS OF ACTIONS
-state = register.reduce(state, [action1, action2, action3]);
-// Map({
-//  todos: List.of([
-//    { index: 0, text: 'foo', completed: false },
-//    { index: 1, text: 'bar', completed: true }
-//  ])
-// })
+// define root reducer
+const rootReducer = (state, action) => appReducer(state, action)
 
-`
+// create redux store
+const store = createStore(
+  rootReducer,
+  Map(),
+  window.devToolsExtension ? window.devToolsExtension() : c => c
+)
+
+ReactDOM.render(<Provider store={store}><AppComponent /></Provider>)
+```
+
+
+###### App.js (root of client app)
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { List, Map, fromJS } from 'immutable'
+import { createStore, applyMiddleware } from 'redux'
+import { Provider } from 'react-redux'
+import { combineReducers } from 'redux-immutable'
+
+// example connected component
+import App from './App'
+
+// import ReduxRegistry and extract reducers from shared instance
+import ReduxRegistry from 'redux-registry' // could have been a separate instantiated copy
+let { reducers } = ReduxRegistry
+
+// create redux state store with default state of Map()
+const appReducer = combineReducers(reducers)
+
+// define root reducer
+const rootReducer = (state, action) => appReducer(state, action)
+
+// create redux store
+const store = createStore(
+  rootReducer,
+  Map(),
+  window.devToolsExtension ? window.devToolsExtension() : c => c
+)
+
+ReactDOM.render(<Provider store={store}><App unconnectedProp={'foo'} /></Provider>)
+```
+
+
