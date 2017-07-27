@@ -11,8 +11,8 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
 
   var createWithAutoType = function createWithAutoType(name) {
     return function (creator) {
-      return function (value) {
-        return Object.assign({ type: name }, creator(value));
+      return function () {
+        return Object.assign({ type: name }, creator.apply(undefined, arguments));
       };
     };
   };
