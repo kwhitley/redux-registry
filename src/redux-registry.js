@@ -1,5 +1,5 @@
 export const ReduxRegister = function(namespace) {
-  const createWithAutoType = (name) => (creator) => (value) => Object.assign({ type: name }, creator(value))
+  const createWithAutoType = (name) => (creator) => (...args) => Object.assign({ type: name }, creator(...args))
   const namespacedName = (namespace) => (name) => `${namespace}:${name}`
 
   this.creators = {}

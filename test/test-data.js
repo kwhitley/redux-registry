@@ -20,6 +20,12 @@ export var defWithoutCreate = {
                               })
 }
 
+export var complexActionDef = {
+  name: 'complexAction',
+  create: (a, b, c) => ({ a, b, c }),
+  reduce: (state, action) => state
+}
+
 export var defWithoutNameOrAlias = {
   create: (index) => ({ type: 'TOGGLE_TODO', index }),
   reduce: (state, action) => state.updateIn(['todos', action.index], todo => {

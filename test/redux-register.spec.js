@@ -131,14 +131,16 @@ describe('class ReduxRegister', () => {
 
     it('allows for custom action creators', () => {
       let register = new ReduxRegister('foo')
-      let def = testData.aliasDef
+      let def = testData.complexActionDef
 
       register.add(def)
       let creator = register.creators[def.name]
 
-      expect(creator('cat')).to.eql({
+      expect(creator('foo', 'bar', 'baz')).to.eql({
         type: `foo:${def.name}`,
-        text: 'cat'
+        a: 'foo',
+        b: 'bar',
+        c: 'baz',
       })
     })
 
