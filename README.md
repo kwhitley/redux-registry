@@ -26,12 +26,12 @@ npm install --save react-redux redux
 ## Usage
 
 The basic steps are as follows:
-1. Create registers.  The namespace included will be the name of the state branch in your reduc store once registered
+1. Create registers.  The namespace included will be the name of the state branch in your redux store once registered
 ```js
   let register = new ReduxRegister('todos')
 ```
 
-2. Set initial state and add definitions to register.  These include a `name` (name of action), `reduce` function and optionally a creator (simple creator functions that output something like { type: 'todos:addTodo', value: 'text' } will be automatically created)
+2. Set initial state and add definitions to register.  These include a `name` (name of action), `reduce` function and optionally a creator (simple creator functions that output something like { type: 'todos:addTodo', value: 'text' } will be automatically created).  No "type" declaration necessary (this is why reducers are paired in the definition)!
 ```js
   import { List } from 'immutable'
   
@@ -39,6 +39,7 @@ The basic steps are as follows:
     .setInitialState(List())
     .add({ 
       name: 'addTodo', 
+      create: (value) => ({ value }), // this is created by default if not overwritten and may be omitted
       reduce: (state, action) => state.push(action.value)
      })
 ```
