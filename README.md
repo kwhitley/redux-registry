@@ -3,6 +3,7 @@ React+Redux (without the boilerplate)
 
 [![npm version](https://badge.fury.io/js/redux-registry.svg)](https://badge.fury.io/js/redux-registry)
 [![Build Status via Travis CI](https://travis-ci.org/kwhitley/redux-registry.svg?branch=master)](https://travis-ci.org/kwhitley/redux-registry)
+[![Coverage Status](https://coveralls.io/repos/github/kwhitley/redux-registry/badge.svg?branch=coveralls)](https://coveralls.io/github/kwhitley/redux-registry?branch=coveralls)
 
 ## Why?
 
