@@ -78,6 +78,38 @@ export const ReduxRegister = function(namespace) {
     return this
   }
 
+  this.create = (name) => {
+    if (!name || typeof name !== 'string') {
+      throw new Error(`ReduxRegister: .create(name)(args) ... invalid definition "name"`)
+    }
+
+    let creator = this.creators[name]
+
+    if (!creator) {
+      throw new Error(`ReduxRegister: .create(name)(args) ... definition "${name}" not found`)
+    }
+
+    return (...args) => creator(...args)
+  }
+
+  this.reduce = (state, action) => {
+    if (!action || typeof action !== 'object') {
+      throw new Error(`ReduxRegister: .reduce(state, action) ... "action" should be an action object`)
+    }
+
+    if (!action.type || typeof action.type !== 'string') {
+      throw new Error(`ReduxRegister: .reduce(state, action) ... "action" should have a valid "type" (string) attribute`)
+    }
+
+    let def = this.get(action.type)
+
+    if (!def) {
+      throw new Error(`ReduxRegister: .reduce(state, action) ... action "${action.type}" could not be resolved`)
+    }
+
+    return def.reduce(state, action)
+  }
+
   this.remove = function(name) {
     if (Array.isArray(name)) {
       name.forEach(n => this.remove(n))

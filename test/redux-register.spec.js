@@ -61,7 +61,7 @@ describe('class ReduxRegister', () => {
     })
   })
 
-  describe('.add(def)', () => {
+  describe('.add(definition)', () => {
     it('is chainable', () => {
       let register = new ReduxRegister('foo')
 
@@ -111,7 +111,7 @@ describe('class ReduxRegister', () => {
       let def = testData.defWithoutCreate
 
       register.add(def)
-      let creator = register.creators[def.name]
+      let creator = register.create(def.name)
 
       expect(typeof creator).to.equal('function')
     })
@@ -121,7 +121,7 @@ describe('class ReduxRegister', () => {
       let def = testData.defWithoutCreate
 
       register.add(def)
-      let creator = register.creators[def.name]
+      let creator = register.create(def.name)
 
       expect(creator(1)).to.eql({
         type: `foo:${def.name}`,
@@ -134,7 +134,7 @@ describe('class ReduxRegister', () => {
       let def = testData.complexActionDef
 
       register.add(def)
-      let creator = register.creators[def.name]
+      let creator = register.create(def.name)
 
       expect(creator('foo', 'bar', 'baz')).to.eql({
         type: `foo:${def.name}`,
@@ -152,6 +152,42 @@ describe('class ReduxRegister', () => {
       register.add([ def1, def2 ])
 
       expect(register.getNames().length).to.equal(2)
+    })
+  })
+
+  describe('.create(name)', () => {
+    it('throws exception if name is not valid', () => {
+      let register = new ReduxRegister('foo')
+      register.add({ name: 'cat', reduce: () => {} })
+
+      expect(() => { register.create({ fake: true }) }).to.throw()
+    })
+
+    it('throws exception if name mismatch', () => {
+      let register = new ReduxRegister('foo')
+      register.add({ name: 'cat', reduce: () => {} })
+
+      expect(() => { register.create('dog') }).to.throw()
+    })
+
+    it('returns an action creator function', () => {
+      let register = new ReduxRegister('foo')
+      register.add({ name: 'cat', reduce: () => {} })
+
+      expect(typeof register.create('cat')).to.equal('function')
+    })
+  })
+
+  describe('.create(name)(...args)', () => {
+    it('successfully creates action object from args', () => {
+      let register = new ReduxRegister('foo')
+      register.add({ name: 'cat', create: (a,b) => ({ a, b }), reduce: () => {} })
+
+      expect(register.create('cat')('mittens', 'fuzz')).to.eql({
+        type: `foo:cat`,
+        a: 'mittens',
+        b: 'fuzz'
+      })
     })
   })
 
@@ -211,6 +247,38 @@ describe('class ReduxRegister', () => {
               .add({ name: 'dog', reduce: () => {} })
 
       expect(register.getNames()).to.eql(['cat', 'dog'])
+    })
+  })
+
+  describe('.reduce(state, action)', () => {
+    it('throws error if not valid "action" object', () => {
+      let register = new ReduxRegister('foo')
+
+      register.add({ name: 'cat', reduce: () => {} })
+
+      expect(() => { register.reduce(false, true) }).to.throw()
+      expect(() => { register.reduce(false, {}) }).to.throw()
+      expect(() => { register.reduce(false, 'string') }).to.throw()
+    })
+
+    it('throws error if definition not found from action "type"', () => {
+      let register = new ReduxRegister('foo')
+
+      register.add({ name: 'cat', reduce: () => {} })
+
+      expect(() => { register.reduce(false, { type: 'foo:dog' }) }).to.throw()
+      expect(() => { register.reduce(false, { type: 'foo:cat' }) }).to.not.throw()
+    })
+
+    it('successfully reduces action on state', () => {
+      let register = new ReduxRegister('foo')
+
+      register
+        .add({ name: 'push', reduce: (state, action) => state.push(action.value) })
+
+      expect(() => { register.reduce({}, { type: 'push', value: 1 }) }).to.throw()
+      expect(register.reduce(List(), { type: 'push', value: 1 })).to.eql(List([1]))
+      expect(register.reduce(List([1]), { type: 'push', value: 5 })).to.eql(List([1, 5]))
     })
   })
 

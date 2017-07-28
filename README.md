@@ -137,4 +137,13 @@ export default connect({
 })(App)
 ```
 
+# Contributing
+
+1. Fork the library and start by running:
+```
+npm run test:watch
+```
+2. Please submit PRs with full test coverage, additions to README, etc.
+3. Issues will be addressed, but PRs with corrections are preferred.  If submitting a PR, please attempt
+   to follow my coding syntax/style.
 

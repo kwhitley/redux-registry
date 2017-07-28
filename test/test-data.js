@@ -1,8 +1,8 @@
 import {List, Map, fromJS} from 'immutable'
 
-export var initialState = Map({ todos: List() })
+export const initialState = Map({ todos: List() })
 
-export var aliasDef = {
+export const aliasDef = {
   name: 'addTodo',
   create: (text) => ({ text }),
   reduce: (state, action) => state.updateIn(['todos'], todos => todos.push({
@@ -12,7 +12,7 @@ export var aliasDef = {
                               }))
 }
 
-export var defWithoutCreate = {
+export const defWithoutCreate = {
   name: 'toggleTodo',
   reduce: (state, action) => state.updateIn(['todos', action.value], todo => {
                                 todo.completed = !todo.completed
@@ -20,13 +20,13 @@ export var defWithoutCreate = {
                               })
 }
 
-export var complexActionDef = {
+export const complexActionDef = {
   name: 'complexAction',
   create: (a, b, c) => ({ a, b, c }),
   reduce: (state, action) => state
 }
 
-export var defWithoutNameOrAlias = {
+export const defWithoutNameOrAlias = {
   create: (index) => ({ type: 'TOGGLE_TODO', index }),
   reduce: (state, action) => state.updateIn(['todos', action.index], todo => {
                                 todo.completed = !todo.completed
