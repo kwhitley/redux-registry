@@ -1,4 +1,4 @@
-React+Redux (without the boilerplate)
+[redux](http://redux.js.org) minus the boilerplate (for use with [immutable.js](https://facebook.github.io/immutable-js/) and [React.js](https://facebook.github.io/react/))
 =======
 
 [![npm version](https://badge.fury.io/js/redux-registry.svg)](https://badge.fury.io/js/redux-registry)
@@ -34,11 +34,11 @@ The basic steps are as follows:
 2. Set initial state and add definitions to register.  These include a `name` (name of action), `reduce` function and optionally a creator (simple creator functions that output something like { type: 'todos:addTodo', value: 'text' } will be automatically created).  No "type" declaration necessary (this is why reducers are paired in the definition)!
 ```js
   import { List } from 'immutable'
-  
+
   register
     .setInitialState(List())
-    .add({ 
-      name: 'addTodo', 
+    .add({
+      name: 'addTodo',
       create: (value) => ({ value }), // this is created by default if not overwritten and may be omitted
       reduce: (state, action) => state.push(action.value)
      })
@@ -57,10 +57,10 @@ The basic steps are as follows:
 5. Create/Reduce functions through the registry.  The registry internally namespaces and pairs everything to ensure proper reduction of actions.  No switch statements, const definitions, etc are necessary.
 ```js
   let action = registry.create('todos')('addTodo')('go to the store')
-  
+
   // assumes a state from somewhere, usually passed in from a redux store
   state = registry.reduce(state, action)
-  
+
   // example state after execution:
   // { todos: ['go to the store'] }
 ```
@@ -91,7 +91,7 @@ const store = createStore(
 ReactDOM.render(<Provider store={store}><App /></Provider>)
 ```
 
-7. [OPTIONAL] - The ReduxRegistry class includes a "connect" method (similar signature to react-redux) that saves a lot of hassle in wiring up props/action creators to components.  This is exported as a named const "connect" from the core module (which default exports a shared ReduxRegistry instance).  In order to use this added magic, I require that you register the "connect" function from react-redux and "bindActionCreators" from react (the exported connect function uses these internally).  
+7. [OPTIONAL] - The ReduxRegistry class includes a "connect" method (similar signature to react-redux) that saves a lot of hassle in wiring up props/action creators to components.  This is exported as a named const "connect" from the core module (which default exports a shared ReduxRegistry instance).  In order to use this added magic, I require that you register the "connect" function from react-redux and "bindActionCreators" from react (the exported connect function uses these internally).
 ###### registry.js
 ```js
 
