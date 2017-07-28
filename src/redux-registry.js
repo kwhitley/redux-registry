@@ -256,22 +256,20 @@ export const ReduxRegistry = function() {
     return this
   }
 
-  this.create = (registerName) => {
-    let register = this.get(registerName)
-
-    if (!register) {
-      throw new Error(`ReduxRegistry: .create(registerName) ... register "${registerName}" not found`)
-    }
-
-    return register.create // returns regiter's action creator
-  }
+  this.create = (registerName) => this.get(registerName).create // returns regiter's action creator
 
   this.get = (registerName) => {
     if (!registerName || typeof registerName !== 'string') {
-      throw new Error(`ReduxRegister: .get(registerName)(args) ... invalid definition "registerName"`)
+      throw new Error(`ReduxRegister: .get(registerName) ... invalid definition "registerName"`)
     }
 
-    return this.registers[registerName]
+    let register = this.registers[registerName]
+
+    if (!register) {
+      throw new Error(`ReduxRegister: .get(registerName) ... register "${registerName}" not found`)
+    }
+
+    return register
   }
 
   this.remove = (namespace) => {

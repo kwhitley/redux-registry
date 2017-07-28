@@ -106,57 +106,74 @@ describe('class ReduxRegistry', () => {
     })
   })
 
-  describe('.get(registryName)', () => {
-    it('throws an error if invalid "registryName" type', () => {
+  describe('.get(registerName)', () => {
+    it('throws an error if invalid "registerName" type', () => {
       let registry = new ReduxRegistry()
       let register = new ReduxRegister('foo')
+      registry.add(register)
 
       expect(() => { registry.get(1) }).to.throw()
+    })
+
+    it('throws an error if "registerName" not found', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+      registry.add(register)
+
       expect(() => { registry.get('foo') }).to.not.throw()
+      expect(() => { registry.get('food') }).to.throw()
+    })
+
+    it('returns appropriate register', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+      registry.add(register)
+
+      expect(registry.get('foo')).to.eql(register)
     })
   })
 
-  describe('.create(registryName)', () => {
-    it('throws an error if invalid "registryName" type', () => {
+  describe('.create(registerName)(actionName)', () => {
+    it('throws an error if invalid "registerName"', () => {
       let registry = new ReduxRegistry()
       let register = new ReduxRegister('foo')
       registry.add(register)
 
       expect(() => { registry.create(1) }).to.throw()
+      expect(() => { registry.create('food') }).to.throw()
       expect(() => { registry.create('foo') }).to.not.throw()
     })
 
-    describe('.create(registryName)(actionName)', () => {
-      it('throws an error if invalid "actionName" type', () => {
+    it('throws an error if invalid "actionName"', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+      register.add(testData.basicDef)
+      registry.add(register)
+
+      expect(() => { registry.create('foo')(1) }).to.throw()
+      expect(() => { registry.create('foo')('addTodos') }).to.throw()
+      expect(() => { registry.create('foo')('addTodo') }).to.not.throw()
+    })
+
+    it('returns an action creator function', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+      register.add(testData.basicDef)
+      registry.add(register)
+
+      expect(typeof registry.create('foo')('addTodo')).to.equal('function')
+    })
+
+    describe('.create(registryName)(actionName)(...args)', () => {
+      it('properly creates an action', () => {
         let registry = new ReduxRegistry()
         let register = new ReduxRegister('foo')
         register.add(testData.basicDef)
         registry.add(register)
 
-        expect(() => { registry.create('foo')(1) }).to.throw()
-        expect(() => { registry.create('foo')('addTodo') }).to.not.throw()
-      })
-
-      it('returns an action creator function', () => {
-        let registry = new ReduxRegistry()
-        let register = new ReduxRegister('foo')
-        register.add(testData.basicDef)
-        registry.add(register)
-
-        expect(typeof registry.create('foo')('addTodo')).to.equal('function')
-      })
-
-      describe('.create(registryName)(actionName)(...args)', () => {
-        it('properly creates an action', () => {
-          let registry = new ReduxRegistry()
-          let register = new ReduxRegister('foo')
-          register.add(testData.basicDef)
-          registry.add(register)
-
-          expect(registry.create('foo')('addTodo')('bar')).to.eql({
-            type: 'foo:addTodo',
-            text: 'bar'
-          })
+        expect(registry.create('foo')('addTodo')('bar')).to.eql({
+          type: 'foo:addTodo',
+          text: 'bar'
         })
       })
     })
