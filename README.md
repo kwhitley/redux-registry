@@ -1,5 +1,6 @@
-[redux](http://redux.js.org) minus the boilerplate (for use with [immutable.js](https://facebook.github.io/immutable-js/) and [React.js](https://facebook.github.io/react/))
+[redux](http://redux.js.org), minus the boilerplate
 =======
+#### (for use with [immutable.js](https://facebook.github.io/immutable-js/) and [React.js](https://facebook.github.io/react/))
 
 [![npm version](https://badge.fury.io/js/redux-registry.svg)](https://badge.fury.io/js/redux-registry)
 [![Build Status via Travis CI](https://travis-ci.org/kwhitley/redux-registry.svg?branch=master)](https://travis-ci.org/kwhitley/redux-registry)
@@ -7,9 +8,9 @@
 
 ## Why?
 
-Because Redux is amazing, but the verbosity (const definitions, switch statements in primary
-reducers, etc) and fragmentation seems backwards.  This module adds a heap of magic with just
-enough flexibility to be useful.
+Because [redux](http://redux.js.org) is amazing, but the verbosity (const definitions, switch statements in primary
+reducers, etc) and fragmentation of the redux definitions can be painful to implement.  This module adds a heap of magic with just
+enough flexibility to be useful.  It basically just removes the repetitive parts and simplifies the cutting and pasting.
 
 ## Installation
 
