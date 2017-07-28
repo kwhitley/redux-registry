@@ -25,6 +25,113 @@ npm install --save react-redux redux
 
 ## Usage
 
+The basic steps are as follows:
+1. Create registers.  The namespace included will be the name of the state branch in your redux store once registered
+```js
+  let register = new ReduxRegister('todos')
+```
+
+2. Set initial state and add definitions to register.  These include a `name` (name of action), `reduce` function and optionally a creator (simple creator functions that output something like { type: 'todos:addTodo', value: 'text' } will be automatically created).  No "type" declaration necessary (this is why reducers are paired in the definition)!
+```js
+  import { List } from 'immutable'
+  
+  register
+    .setInitialState(List())
+    .add({ 
+      name: 'addTodo', 
+      create: (value) => ({ value }), // this is created by default if not overwritten and may be omitted
+      reduce: (state, action) => state.push(action.value)
+     })
+```
+
+3. Create a registry (ReduxRegistry class)
+```js
+  let registry = new ReduxRegistry
+```
+
+4. Add registers to the registry
+```js
+  registry.add(register)
+```
+
+5. Create/Reduce functions through the registry.  The registry internally namespaces and pairs everything to ensure proper reduction of actions.  No switch statements, const definitions, etc are necessary.
+```js
+  let action = registry.create('todos')('addTodo')('go to the store')
+  
+  // assumes a state from somewhere, usually passed in from a redux store
+  state = registry.reduce(state, action)
+  
+  // example state after execution:
+  // { todos: ['go to the store'] }
+```
+
+6. Wire up to redux
+```js
+import { createStore } from 'redux'
+import { combineReducers } from 'redux-immutable'
+
+// import ReduxRegistry and extract reducers from shared instance
+import ReduxRegistry from './registry'
+let { reducers } = ReduxRegistry
+
+// create redux state store with default state of Map()
+const appReducer = combineReducers(reducers)
+
+// define root reducer
+const rootReducer = (state, action) => appReducer(state, action)
+
+// create redux store
+const store = createStore(
+  rootReducer,
+  Map(), // initial state
+  window.devToolsExtension ? window.devToolsExtension() : c => c
+)
+
+// use store like you normally would (e.g. in Provider)
+ReactDOM.render(<Provider store={store}><App /></Provider>)
+```
+
+7. [OPTIONAL] - The ReduxRegistry class includes a "connect" method (similar signature to react-redux) that saves a lot of hassle in wiring up props/action creators to components.  This is exported as a named const "connect" from the core module (which default exports a shared ReduxRegistry instance).  In order to use this added magic, I require that you register the "connect" function from react-redux and "bindActionCreators" from react (the exported connect function uses these internally).  
+###### registry.js
+```js
+
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import ReduxRegistry from 'redux-registry'
+
+export default ReduxRegistry
+  .setConnect(connect) // internally sets "connect" function
+  .setBindActionCreators(bindActionCreators) // internally sets "bindActionCreators" function
+
+// continue adding registers (shown above)
+```
+
+Then in a component:
+
+```js
+import React, { Component } from 'react'
+import { connect } from 'redux-registry'
+
+export const App = ({ username, user }) => (
+  <div className="app">
+    <div>User: {username}</div>
+    <div>Age: {user.age} (can pull entire state branches or named nodes if using immutable)</div>
+    <button onClick={logoutAction}>Logout fires action dispatcher</button>
+  </div>
+)
+
+export default connect({
+  props: {
+    username: 'user.name',
+    user: 'user',
+  },
+  dispatchers: {
+    'logoutAction': 'user.logout'
+  }
+})(App)
+```
+
+
 ###### register1.js
 ```js
 import { ReduxRegister } from 'redux-registry'
@@ -111,7 +218,6 @@ const store = createStore(
 
 ReactDOM.render(<Provider store={store}><App unconnectedProp={'foo'} /></Provider>)
 ```
-
 
 ###### App.js
 ```js
