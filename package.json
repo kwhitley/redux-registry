@@ -19,6 +19,9 @@
   },
   "keywords": [
     "redux",
+    "react",
+    "react-redux",
+    "immutable",
     "boilerplate",
     "register",
     "factory",
