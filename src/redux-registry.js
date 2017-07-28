@@ -143,6 +143,10 @@ export const ReduxRegister = function(namespace) {
   }
 
   this.get = function(name) {
+    if (!name || typeof name !== 'string') {
+      throw new Error(`ReduxRegister: .get(definitionName)(args) ... invalid definition name (must be a string)`)
+    }
+
     return this.defs.find(def => def.name === name || def.namespacedName === name)
   }
 
@@ -186,7 +190,7 @@ export const ReduxRegistry = function() {
   this._bindActionCreators = () => {}
   this._connect = () => {}
   this.registers = {}
-  this.actions = {}
+  this.creators = {}
   this.reducers = {}
 
   // NEW METHOD TO CONNECT NAMED PROPS TO STATE VALUES/BRANCHES
@@ -197,9 +201,9 @@ export const ReduxRegistry = function() {
   }, {})
 
   // NEW METHOD TO CONNECT NAMED PROPS TO ACTION DISPATCHERS
-  this.connectedDispatchers = (actionsMap = {}) => (dispatch) => {
-    return Object.keys(actionsMap).reduce((map, key) => {
-      let actionRefs = actionsMap[key].split('.')
+  this.connectedDispatchers = (creatorsMap = {}) => (dispatch) => {
+    return Object.keys(creatorsMap).reduce((map, key) => {
+      let actionRefs = creatorsMap[key].split('.')
       let actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0]
       let branch = this.getActions()[actionRefs[0]]
       let dispatchers = this._bindActionCreators(branch, dispatch)
@@ -213,16 +217,6 @@ export const ReduxRegistry = function() {
   // CONNECTS REACT COMPONENT (param1) PROPS TO OBJECT MAP OF PROPS/DISPATCHERS (param2)
   this.connect = (map) => (component) =>
     this._connect(this.connectedProps(map.props), this.connectedDispatchers(map.dispatchers))(component)
-
-  this.getReducers = () => Object.keys(this.registers).reduce((out, key) => {
-    out[key] = this.registers[key].reducer
-    return out
-  }, {})
-
-  this.getActions = () => Object.keys(this.registers).reduce((out, key) => {
-    out[key] = this.registers[key].creators
-    return out
-  }, {})
 
   this.setConnect = (fn) => {
     if (typeof fn !== 'function' || !fn.name || fn.name !== 'connect') {
@@ -246,7 +240,7 @@ export const ReduxRegistry = function() {
     if (Array.isArray(register)) {
       register.forEach(r => this.add(r))
     } else {
-      let { registers, reducers, actions } = this
+      let { registers, reducers, creators } = this
 
       let namespace = register.getNamespace()
 
@@ -255,11 +249,29 @@ export const ReduxRegistry = function() {
       }
 
       registers[namespace] = register
-      actions[namespace] = register.creators
+      creators[namespace] = register.creators
       reducers[namespace] = register.reducer
     }
 
     return this
+  }
+
+  this.create = (registerName) => {
+    let register = this.get(registerName)
+
+    if (!register) {
+      throw new Error(`ReduxRegistry: .create(registerName) ... register "${registerName}" not found`)
+    }
+
+    return register.create // returns regiter's action creator
+  }
+
+  this.get = (registerName) => {
+    if (!registerName || typeof registerName !== 'string') {
+      throw new Error(`ReduxRegister: .get(registerName)(args) ... invalid definition "registerName"`)
+    }
+
+    return this.registers[registerName]
   }
 
   this.remove = (namespace) => {
@@ -270,14 +282,14 @@ export const ReduxRegistry = function() {
         throw Error(`ReduxRegistry: .remove(name) ... requires a register "name" to successfully remove`)
       }
 
-      let { registers, reducers, actions } = this
+      let { registers, reducers, creators } = this
 
       if (!registers[namespace]) {
         throw Error(`ReduxRegistry: .remove("${namespace}") ... register with namespace "${namespace}" not found`)
       }
 
       delete registers[namespace]
-      delete actions[namespace]
+      delete creators[namespace]
       delete reducers[namespace]
     }
 

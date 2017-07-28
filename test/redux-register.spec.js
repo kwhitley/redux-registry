@@ -65,7 +65,7 @@ describe('class ReduxRegister', () => {
     it('is chainable', () => {
       let register = new ReduxRegister('foo')
 
-      expect(register.add(testData.aliasDef)).to.eql(register)
+      expect(register.add(testData.basicDef)).to.eql(register)
     })
 
     it('requires an object definition', () => {
@@ -92,17 +92,17 @@ describe('class ReduxRegister', () => {
       let register = new ReduxRegister()
 
       // will throw
-      expect(() => { register.add(testData.aliasDef) }).to.throw()
+      expect(() => { register.add(testData.basicDef) }).to.throw()
 
       // will not
       register.setNamespace('foo')
-      expect(() => { register.add(testData.aliasDef) }).to.not.throw()
+      expect(() => { register.add(testData.basicDef) }).to.not.throw()
     })
 
     it('adds only one register definition', () => {
       let register = new ReduxRegister('foo')
 
-      register.add(testData.aliasDef)
+      register.add(testData.basicDef)
       expect(register.defs.length).to.equal(1)
     })
 
@@ -146,7 +146,7 @@ describe('class ReduxRegister', () => {
 
     it('accepts array of definitions', () => {
       let register = new ReduxRegister('foo')
-      let def1 = testData.aliasDef
+      let def1 = testData.basicDef
       let def2 = testData.defWithoutCreate
 
       register.add([ def1, def2 ])
@@ -191,7 +191,14 @@ describe('class ReduxRegister', () => {
     })
   })
 
-  describe('.get(name)', () => {
+  describe('.get(definitionName)', () => {
+    it('throws an error if invalid "definitionName" type', () => {
+      let register = new ReduxRegister('foo')
+
+      expect(() => { register.get(1) }).to.throw()
+      expect(() => { register.get('foo') }).to.not.throw()
+    })
+
     it('returns undefined if not found', () => {
       let register = new ReduxRegister('foo')
 

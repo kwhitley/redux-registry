@@ -93,7 +93,7 @@ describe('class ReduxRegistry', () => {
       let register = new ReduxRegister('pets')
       registry.add(register)
 
-      expect(typeof registry.actions.pets).to.equal('object')
+      expect(typeof registry.creators.pets).to.equal('object')
     })
 
     it('correctly adds multiple registers, if passed as array (multiple)', () => {
@@ -103,6 +103,62 @@ describe('class ReduxRegistry', () => {
       registry.add([register1, register2])
 
       expect(Object.keys(registry.registers).length).to.equal(2)
+    })
+  })
+
+  describe('.get(registryName)', () => {
+    it('throws an error if invalid "registryName" type', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+
+      expect(() => { registry.get(1) }).to.throw()
+      expect(() => { registry.get('foo') }).to.not.throw()
+    })
+  })
+
+  describe('.create(registryName)', () => {
+    it('throws an error if invalid "registryName" type', () => {
+      let registry = new ReduxRegistry()
+      let register = new ReduxRegister('foo')
+      registry.add(register)
+
+      expect(() => { registry.create(1) }).to.throw()
+      expect(() => { registry.create('foo') }).to.not.throw()
+    })
+
+    describe('.create(registryName)(actionName)', () => {
+      it('throws an error if invalid "actionName" type', () => {
+        let registry = new ReduxRegistry()
+        let register = new ReduxRegister('foo')
+        register.add(testData.basicDef)
+        registry.add(register)
+
+        expect(() => { registry.create('foo')(1) }).to.throw()
+        expect(() => { registry.create('foo')('addTodo') }).to.not.throw()
+      })
+
+      it('returns an action creator function', () => {
+        let registry = new ReduxRegistry()
+        let register = new ReduxRegister('foo')
+        register.add(testData.basicDef)
+        registry.add(register)
+
+        expect(typeof registry.create('foo')('addTodo')).to.equal('function')
+      })
+
+      describe('.create(registryName)(actionName)(...args)', () => {
+        it('properly creates an action', () => {
+          let registry = new ReduxRegistry()
+          let register = new ReduxRegister('foo')
+          register.add(testData.basicDef)
+          registry.add(register)
+
+          expect(registry.create('foo')('addTodo')('bar')).to.eql({
+            type: 'foo:addTodo',
+            text: 'bar'
+          })
+        })
+      })
     })
   })
 

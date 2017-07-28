@@ -2,7 +2,7 @@ import {List, Map, fromJS} from 'immutable'
 
 export const initialState = Map({ todos: List() })
 
-export const aliasDef = {
+export const basicDef = {
   name: 'addTodo',
   create: (text) => ({ text }),
   reduce: (state, action) => state.updateIn(['todos'], todos => todos.push({
