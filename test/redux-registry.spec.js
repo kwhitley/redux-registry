@@ -7,30 +7,26 @@ import GlobalRegistry, { ReduxRegister, ReduxRegistry } from '../src/redux-regis
 import * as testData from './test-data'
 
 describe('class ReduxRegistry', () => {
+  let registry = new ReduxRegistry
+
   it ('shared instance is default export of module', () => {
     expect(GlobalRegistry.constructor.name).to.equal('ReduxRegistry')
   })
 
   it ('successfully exported as named constant "ReduxRegistry" by module', () => {
-    let registery = new ReduxRegistry
-    expect(registery.constructor.name).to.equal('ReduxRegistry')
+    expect(registry.constructor.name).to.equal('ReduxRegistry')
   })
 
   it ('has no registers by default', () => {
-    let registery = new ReduxRegistry
-    expect(registery.registers).to.eql({})
+    expect(registry.registers).to.eql({})
   })
 
   describe('.setConnect(connect)', () => {
     it('is chainable', () => {
-      let registry = new ReduxRegistry()
-
       expect(registry.setConnect(connect)).to.eql(registry)
     })
 
     it('requires a "connect" function from "react-redux"', () => {
-      let registry = new ReduxRegistry()
-
       expect(() => { registry.setConnect() }).to.throw()
       expect(() => { registry.setConnect(() => {}) }).to.throw()
       expect(() => { registry.setConnect(connect) }).to.not.throw()
@@ -39,14 +35,10 @@ describe('class ReduxRegistry', () => {
 
   describe('.setBindActionCreators(bindActionCreators)', () => {
     it('is chainable', () => {
-      let registry = new ReduxRegistry()
-
       expect(registry.setBindActionCreators(bindActionCreators)).to.eql(registry)
     })
 
     it('requires a "bindActionCreators" function from "redux"', () => {
-      let registry = new ReduxRegistry()
-
       expect(() => { registry.setBindActionCreators() }).to.throw()
       expect(() => { registry.setBindActionCreators(() => {}) }).to.throw()
       expect(() => { registry.setBindActionCreators(bindActionCreators) }).to.not.throw()
@@ -55,7 +47,6 @@ describe('class ReduxRegistry', () => {
 
   describe('.add(register or array of registers)', () => {
     it('is chainable', () => {
-      let registry = new ReduxRegistry()
       let register = new ReduxRegister('pets')
       registry.add(register)
 
@@ -97,7 +88,6 @@ describe('class ReduxRegistry', () => {
     })
 
     it('correctly adds multiple registers, if passed as array (multiple)', () => {
-      let registry = new ReduxRegistry()
       let register1 = new ReduxRegister('pets')
       let register2 = new ReduxRegister('toys')
       registry.add([register1, register2])
@@ -106,9 +96,88 @@ describe('class ReduxRegistry', () => {
     })
   })
 
+  describe('.connect(map)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    register.add(testData.basicDef)
+    registry.add(register)
+
+    it('requires an object with "props" and/or "dispatchers"', () => {
+      expect(() => { registry.connect(1) }).to.throw()
+      expect(() => { registry.connect({}) }).to.throw()
+      expect(() => { registry.connect({ props: 1 }) }).to.throw()
+      expect(() => { registry.connect({ props: {} }) }).to.not.throw()
+      expect(() => { registry.connect({ dispatchers: 1 }) }).to.throw()
+      expect(() => { registry.connect({ dispatchers: {} }) }).to.not.throw()
+    })
+  })
+
+  describe('.connectedDispatchers(creatorsMap)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    register.add(testData.basicDef)
+    registry.add(register)
+
+    it('requires an object', () => {
+      expect(() => { registry.connectedDispatchers(1) }).to.throw()
+      expect(() => { registry.connectedDispatchers({}) }).to.not.throw()
+    })
+  })
+
+  describe('.connectedProps(propsMap)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    register.add(testData.basicDef)
+    registry.add(register)
+
+    it('requires an object', () => {
+      expect(() => { registry.connectedProps(1) }).to.throw()
+      expect(() => { registry.connectedProps({}) }).to.not.throw()
+    })
+
+    it('returns a mapping of the state', () => {
+      let state = fromJS({ foo: { bar: 'baz' }})
+
+      expect(registry.connectedProps({ 'test': 'foo.bar' })(state)).to.eql({
+        test: 'baz'
+      })
+    })
+  })
+
+  describe('.create(registerName)(actionName)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    register.add(testData.basicDef)
+    registry.add(register)
+
+    it('throws an error if invalid "registerName"', () => {
+      expect(() => { registry.create(1) }).to.throw()
+      expect(() => { registry.create('food') }).to.throw()
+      expect(() => { registry.create('foo') }).to.not.throw()
+    })
+
+    it('throws an error if invalid "actionName"', () => {
+      expect(() => { registry.create('foo')(1) }).to.throw()
+      expect(() => { registry.create('foo')('addTodos') }).to.throw()
+      expect(() => { registry.create('foo')('addTodo') }).to.not.throw()
+    })
+
+    it('returns an action creator function', () => {
+      expect(typeof registry.create('foo')('addTodo')).to.equal('function')
+    })
+
+    describe('.create(registryName)(actionName)(...args)', () => {
+      it('properly creates an action', () => {
+        expect(registry.create('foo')('addTodo')('bar')).to.eql({
+          type: 'foo:addTodo',
+          text: 'bar'
+        })
+      })
+    })
+  })
+
   describe('.get(registerName)', () => {
     it('throws an error if invalid "registerName" type', () => {
-      let registry = new ReduxRegistry()
       let register = new ReduxRegister('foo')
       registry.add(register)
 
@@ -133,49 +202,50 @@ describe('class ReduxRegistry', () => {
     })
   })
 
-  describe('.create(registerName)(actionName)', () => {
-    it('throws an error if invalid "registerName"', () => {
-      let registry = new ReduxRegistry()
-      let register = new ReduxRegister('foo')
-      registry.add(register)
+  describe('.getRegisterFromAction(action)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    registry.add(register)
 
-      expect(() => { registry.create(1) }).to.throw()
-      expect(() => { registry.create('food') }).to.throw()
-      expect(() => { registry.create('foo') }).to.not.throw()
+    let invalidAction1 = { foo: 1 }
+    let invalidAction2 = { type: 'foo' }
+    let invalidAction3 = { type: 'food:addTodo' }
+    let validAction = { type: 'foo:addTodo' }
+
+    it('throws an error if invalid "action" type', () => {
+      expect(() => { registry.getRegisterFromAction(invalidAction1) }).to.throw()
+      expect(() => { registry.getRegisterFromAction(invalidAction2) }).to.throw()
+      expect(() => { registry.getRegisterFromAction(invalidAction3) }).to.throw()
+      expect(() => { registry.getRegisterFromAction(validAction) }).to.not.throw()
     })
 
-    it('throws an error if invalid "actionName"', () => {
-      let registry = new ReduxRegistry()
-      let register = new ReduxRegister('foo')
-      register.add(testData.basicDef)
-      registry.add(register)
+    it('successfully returns a register from action object', () => {
+      expect(registry.getRegisterFromAction(validAction)).to.eql(register)
+    })
+  })
 
-      expect(() => { registry.create('foo')(1) }).to.throw()
-      expect(() => { registry.create('foo')('addTodos') }).to.throw()
-      expect(() => { registry.create('foo')('addTodo') }).to.not.throw()
+  describe('.reduce(state, action)', () => {
+    let registry = new ReduxRegistry()
+    let register = new ReduxRegister('foo')
+    register.add({
+      name: 'add',
+      reduce: (state, action) => state + action.value
+    })
+    registry.add(register)
+
+    let invalidAction1 = { foo: 1 }
+    let invalidAction2 = { type: 'foo' }
+    let invalidAction3 = { type: 'food:addTodo' }
+    let validAction = { type: 'foo:add', value: 2 }
+
+    it('throws an error if invalid "action" type', () => {
+      expect(() => { registry.reduce(0, invalidAction1) }).to.throw()
+      expect(() => { registry.reduce(0, invalidAction2) }).to.throw()
+      expect(() => { registry.reduce(0, invalidAction3) }).to.throw()
     })
 
-    it('returns an action creator function', () => {
-      let registry = new ReduxRegistry()
-      let register = new ReduxRegister('foo')
-      register.add(testData.basicDef)
-      registry.add(register)
-
-      expect(typeof registry.create('foo')('addTodo')).to.equal('function')
-    })
-
-    describe('.create(registryName)(actionName)(...args)', () => {
-      it('properly creates an action', () => {
-        let registry = new ReduxRegistry()
-        let register = new ReduxRegister('foo')
-        register.add(testData.basicDef)
-        registry.add(register)
-
-        expect(registry.create('foo')('addTodo')('bar')).to.eql({
-          type: 'foo:addTodo',
-          text: 'bar'
-        })
-      })
+    it('successfully reduces an action', () => {
+      expect(registry.reduce(5, validAction)).to.equal(7)
     })
   })
 
@@ -201,11 +271,18 @@ describe('class ReduxRegistry', () => {
       expect(() => { registry.remove(['foo']) }).to.not.throw()
     })
 
+    it('throws exception when invalid register name', () => {
+      let registry = new ReduxRegistry()
+      registry.add(new ReduxRegister('cats'))
+
+      expect(() => { registry.remove('foo') }).to.throw()
+      expect(() => { registry.remove('cats') }).to.not.throw()
+    })
+
     it('successfully removes single register', () => {
       let registry = new ReduxRegistry()
       let register1 = new ReduxRegister('cats')
       let register2 = new ReduxRegister('toys')
-
 
       expect(Object.keys(registry.registers).length).to.equal(0)
 
@@ -232,50 +309,4 @@ describe('class ReduxRegistry', () => {
       expect(Object.keys(registry.registers).length).to.equal(0)
     })
   })
-
-  // describe('reducer(state, action)', () => {
-  //   let register = registerWithTwoDefs
-
-  //   it('returns state if no action given', () => {
-  //     expect(register.reducer(1)).to.equal(1)
-  //   })
-
-  //   it('returns a default state of {} if not defined through initialState/setInitialState()', () => {
-  //     expect(register.reducer()).to.eql({})
-  //   })
-
-  //   it('returns initialState as default state (if defined)', () => {
-  //     register.setInitialState(testData.initialState)
-  //     expect(register.reducer().toJS()).to.eql(testData.initialState.toJS())
-  //   })
-
-  //   it('can reduce an action', () => {
-  //     let action = register.create.ADD_TODO('foo')
-  //     let state = testData.initialState
-  //     state = register.reducer(state, action)
-
-  //     expect(state.get('todos').size).to.equal(1)
-  //     expect(state.get('todos').toJS()).to.eql([
-  //       { index: 0, text: 'foo', completed: false }
-  //     ])
-  //   })
-  // })
-
-  // describe('reducer(state, [actions])', () => {
-  //   let register = registerWithTwoDefs
-  //   let actions = [
-  //     register.create.addTodo('foo'),
-  //     register.create.addTodo('bar'),
-  //     register.create.TOGGLE_TODO(1)
-  //   ]
-  //   let state = testData.initialState
-
-  //   it('correctly reduces array of actions', () => {
-  //     state = register.reducer(state, actions)
-  //     expect(state.get('todos').toJS()).to.eql([
-  //       { index: 0, text: 'foo', completed: false },
-  //       { index: 1, text: 'bar', completed: true }
-  //     ])
-  //   })
-  // })
 })
