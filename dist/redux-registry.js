@@ -241,8 +241,11 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
 var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   var _this5 = this;
 
-  this._bindActionCreators = function () {};
-  this._connect = function () {};
+  // INTERNAL REFERENCES TO BE SET VIA .setConnect() and .setBindActionCreators()
+  var _bindActionCreators = function _bindActionCreators() {};
+  var _connect = function _connect() {};
+
+  // EXPOSED FOR EXPORTING
   this.registers = {};
   this.creators = {};
   this.reducers = {};
@@ -250,6 +253,11 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   // NEW METHOD TO CONNECT NAMED PROPS TO STATE VALUES/BRANCHES
   this.connectedProps = function () {
     var propsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    if ((typeof propsMap === 'undefined' ? 'undefined' : _typeof(propsMap)) !== 'object') {
+      throw Error('ReduxRegistry: .connectedProps(propsMap) requires a propsMap object');
+    }
+
     return function (state) {
       return Object.keys(propsMap).reduce(function (map, key) {
         map[key] = state.getIn(propsMap[key].split('.'));
@@ -262,12 +270,17 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   // NEW METHOD TO CONNECT NAMED PROPS TO ACTION DISPATCHERS
   this.connectedDispatchers = function () {
     var creatorsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    if ((typeof creatorsMap === 'undefined' ? 'undefined' : _typeof(creatorsMap)) !== 'object') {
+      throw Error('ReduxRegistry: .connectedDispatchers(creatorsMap) requires a creatorsMap object');
+    }
+
     return function (dispatch) {
       return Object.keys(creatorsMap).reduce(function (map, key) {
         var actionRefs = creatorsMap[key].split('.');
         var actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0];
-        var branch = _this5.getActions()[actionRefs[0]];
-        var dispatchers = _this5._bindActionCreators(branch, dispatch);
+        var branch = _this5.creators[actionRefs[0]];
+        var dispatchers = _bindActionCreators(branch, dispatch);
 
         map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers;
 
@@ -278,8 +291,20 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
 
   // CONNECTS REACT COMPONENT (param1) PROPS TO OBJECT MAP OF PROPS/DISPATCHERS (param2)
   this.connect = function (map) {
+    if (!map.props && !map.dispatchers) {
+      throw Error('ReduxRegistry: .connect(map) ... map requires either "props" or "dispatchers" defined');
+    }
+
+    if (map.props && _typeof(map.props) !== 'object') {
+      throw Error('ReduxRegistry: .connect(map) ... "props" attribute of map must be an object');
+    }
+
+    if (map.dispatchers && _typeof(map.dispatchers) !== 'object') {
+      throw Error('ReduxRegistry: .connect(map) ... "dispatchers" attribute of map must be an object');
+    }
+
     return function (component) {
-      return _this5._connect(_this5.connectedProps(map.props), _this5.connectedDispatchers(map.dispatchers))(component);
+      return _connect(_this5.connectedProps(map.props), _this5.connectedDispatchers(map.dispatchers))(component);
     };
   };
 
@@ -288,7 +313,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
       throw Error('ReduxRegistry: .setConnect(connect) requires a "connect" function from "react-redux"');
     }
 
-    _this5._connect = fn;
+    _connect = fn;
     return _this5;
   };
 
@@ -297,7 +322,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
       throw Error('ReduxRegistry: .setBindActionCreators(bindActionCreators) requires a "bindActionCreators" function from "redux"');
     }
 
-    _this5._bindActionCreators = fn;
+    _bindActionCreators = fn;
     return _this5;
   };
 
@@ -326,6 +351,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
     return _this5;
   };
 
+  // sugar method for this.get(registerName).create(actionName)
   this.create = function (registerName) {
     return _this5.get(registerName).create;
   }; // returns regiter's action creator
@@ -342,6 +368,24 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
     }
 
     return register;
+  };
+
+  this.getRegisterFromAction = function (action) {
+    if (!action || (typeof action === 'undefined' ? 'undefined' : _typeof(action)) !== 'object' || !action.type || typeof action.type !== 'string') {
+      throw new Error('ReduxRegistry: .getRegisterFromAction(action) ... invalid action', action);
+    }
+
+    var namespace = action.type.split(':');
+
+    if (namespace.length < 2) {
+      throw new Error('ReduxRegistry: .getRegisterFromAction(action) ... invalid action namespace', action.type);
+    }
+
+    return _this5.get(namespace[0]);
+  };
+
+  this.reduce = function (state, action) {
+    return _this5.getRegisterFromAction(action).reduce(state, action);
   };
 
   this.remove = function (namespace) {

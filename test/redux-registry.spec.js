@@ -28,7 +28,7 @@ describe('class ReduxRegistry', () => {
 
     it('requires a "connect" function from "react-redux"', () => {
       expect(() => { registry.setConnect() }).to.throw()
-      expect(() => { registry.setConnect(() => {}) }).to.throw()
+      expect(() => { registry.setConnect(() => {}) }).to.not.throw()
       expect(() => { registry.setConnect(connect) }).to.not.throw()
     })
   })
@@ -40,7 +40,7 @@ describe('class ReduxRegistry', () => {
 
     it('requires a "bindActionCreators" function from "redux"', () => {
       expect(() => { registry.setBindActionCreators() }).to.throw()
-      expect(() => { registry.setBindActionCreators(() => {}) }).to.throw()
+      expect(() => { registry.setBindActionCreators(() => {}) }).to.not.throw()
       expect(() => { registry.setBindActionCreators(bindActionCreators) }).to.not.throw()
     })
   })

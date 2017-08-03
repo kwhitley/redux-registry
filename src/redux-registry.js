@@ -248,7 +248,7 @@ export const ReduxRegistry = function() {
   }
 
   this.setConnect = (fn) => {
-    if (typeof fn !== 'function' || !fn.name || fn.name !== 'connect') {
+    if (typeof fn !== 'function') {
       throw Error(`ReduxRegistry: .setConnect(connect) requires a "connect" function from "react-redux"`)
     }
 
@@ -257,7 +257,7 @@ export const ReduxRegistry = function() {
   }
 
   this.setBindActionCreators = (fn) => {
-    if (typeof fn !== 'function' || !fn.name || fn.name !== 'bindActionCreators') {
+    if (typeof fn !== 'function') {
       throw Error(`ReduxRegistry: .setBindActionCreators(bindActionCreators) requires a "bindActionCreators" function from "redux"`)
     }
 
