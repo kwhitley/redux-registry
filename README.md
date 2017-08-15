@@ -143,3 +143,5 @@ npm run test:watch
 3. Issues will be addressed, but PRs with corrections are preferred.  If submitting a PR, please attempt
    to follow my coding syntax/style.
 
+### Changelog
+- **v0.1.10** - Added more detail error messaging when incorrectly binding actions (branch not found)
