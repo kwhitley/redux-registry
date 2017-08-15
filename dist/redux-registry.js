@@ -280,6 +280,10 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
         var actionRefs = creatorsMap[key].split('.');
         var actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0];
         var branch = _this5.creators[actionRefs[0]];
+
+        if (!branch) {
+          throw Error('ReduxRegistry: could not find action branch named "' + actionRefs[0] + '".  Are you sure you spelled that correctly?');
+        }
         var dispatchers = _bindActionCreators(branch, dispatch);
 
         map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers;
@@ -309,7 +313,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   };
 
   this.setConnect = function (fn) {
-    if (typeof fn !== 'function' || !fn.name || fn.name !== 'connect') {
+    if (typeof fn !== 'function') {
       throw Error('ReduxRegistry: .setConnect(connect) requires a "connect" function from "react-redux"');
     }
 
@@ -318,7 +322,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   };
 
   this.setBindActionCreators = function (fn) {
-    if (typeof fn !== 'function' || !fn.name || fn.name !== 'bindActionCreators') {
+    if (typeof fn !== 'function') {
       throw Error('ReduxRegistry: .setBindActionCreators(bindActionCreators) requires a "bindActionCreators" function from "redux"');
     }
 

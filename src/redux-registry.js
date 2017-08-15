@@ -220,6 +220,10 @@ export const ReduxRegistry = function() {
         let actionRefs = creatorsMap[key].split('.')
         let actionName = actionRefs && actionRefs.length > 1 ? actionRefs[1] : actionRefs[0]
         let branch = this.creators[actionRefs[0]]
+
+        if (!branch) {
+          throw Error(`ReduxRegistry: could not find action branch named "${actionRefs[0]}".  Are you sure you spelled that correctly?`)
+        }
         let dispatchers = _bindActionCreators(branch, dispatch)
 
         map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers
