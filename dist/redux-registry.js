@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.connect = exports.ReduxRegistry = exports.ReduxRegister = undefined;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _redux = require('redux');
 
@@ -35,7 +35,7 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
   this._namespace = namespace;
 
   this.setInitialState = function () {
-    var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     initialState = state;
     this.state = state;
@@ -153,26 +153,24 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
         return _this3.remove(n);
       });
     } else {
-      (function () {
-        if (typeof name !== 'string') {
-          throw new Error('ReduxRegistry: .remove(name) ... "name" should be a string');
-        }
+      if (typeof name !== 'string') {
+        throw new Error('ReduxRegistry: .remove(name) ... "name" should be a string');
+      }
 
-        // remove from definitions
-        var match = _this3.defs.find(function (d) {
-          return d.name === name;
-        });
+      // remove from definitions
+      var match = this.defs.find(function (d) {
+        return d.name === name;
+      });
 
-        if (!match) {
-          throw new Error('ReduxRegistry: .remove(name) ... cannot find definition "' + name + '" in definitions');
-        }
+      if (!match) {
+        throw new Error('ReduxRegistry: .remove(name) ... cannot find definition "' + name + '" in definitions');
+      }
 
-        _this3.defs = _this3.defs.filter(function (d) {
-          return d !== match;
-        });
-        delete _this3.creators[name];
-        delete _this3.reducers[match.namespacedName];
-      })();
+      this.defs = this.defs.filter(function (d) {
+        return d !== match;
+      });
+      delete this.creators[name];
+      delete this.reducers[match.namespacedName];
     }
 
     return this;
@@ -205,24 +203,18 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
   this.reducer = function () {
     var _this4 = this;
 
-    var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
     var action = arguments[1];
 
     var state1 = state;
 
     if (Array.isArray(action)) {
-      var _ret2 = function () {
-        var s = state;
-        action.forEach(function (a) {
-          s = _this4.reducer(s, a);
-        }, _this4);
+      var s = state;
+      action.forEach(function (a) {
+        s = _this4.reducer(s, a);
+      }, this);
 
-        return {
-          v: s
-        };
-      }();
-
-      if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+      return s;
     }
 
     if (!action || !action.type || action.type.indexOf('@@') === 0) {
@@ -253,7 +245,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
 
   // NEW METHOD TO CONNECT NAMED PROPS TO STATE VALUES/BRANCHES
   this.connectedProps = function () {
-    var propsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var propsMap = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     if ((typeof propsMap === 'undefined' ? 'undefined' : _typeof(propsMap)) !== 'object') {
       throw Error('ReduxRegistry: .connectedProps(propsMap) requires a propsMap object');
@@ -270,7 +262,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
 
   // NEW METHOD TO CONNECT NAMED PROPS TO ACTION DISPATCHERS
   this.connectedDispatchers = function () {
-    var creatorsMap = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var creatorsMap = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     if ((typeof creatorsMap === 'undefined' ? 'undefined' : _typeof(creatorsMap)) !== 'object') {
       throw Error('ReduxRegistry: .connectedDispatchers(creatorsMap) requires a creatorsMap object');
@@ -319,9 +311,9 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
         return _this5.add(r);
       });
     } else {
-      var registers = _this5.registers;
-      var reducers = _this5.reducers;
-      var creators = _this5.creators;
+      var registers = _this5.registers,
+          reducers = _this5.reducers,
+          creators = _this5.creators;
 
 
       var namespace = register.getNamespace();
@@ -385,9 +377,9 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
         throw Error('ReduxRegistry: .remove(name) ... requires a register "name" to successfully remove');
       }
 
-      var registers = _this5.registers;
-      var reducers = _this5.reducers;
-      var creators = _this5.creators;
+      var registers = _this5.registers,
+          reducers = _this5.reducers,
+          creators = _this5.creators;
 
 
       if (!registers[namespace]) {
