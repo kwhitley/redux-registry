@@ -21,30 +21,6 @@ describe('class ReduxRegistry', () => {
     expect(registry.registers).to.eql({})
   })
 
-  describe('.setConnect(connect)', () => {
-    it('is chainable', () => {
-      expect(registry.setConnect(connect)).to.eql(registry)
-    })
-
-    it('requires a "connect" function from "react-redux"', () => {
-      expect(() => { registry.setConnect() }).to.throw()
-      expect(() => { registry.setConnect(() => {}) }).to.not.throw()
-      expect(() => { registry.setConnect(connect) }).to.not.throw()
-    })
-  })
-
-  describe('.setBindActionCreators(bindActionCreators)', () => {
-    it('is chainable', () => {
-      expect(registry.setBindActionCreators(bindActionCreators)).to.eql(registry)
-    })
-
-    it('requires a "bindActionCreators" function from "redux"', () => {
-      expect(() => { registry.setBindActionCreators() }).to.throw()
-      expect(() => { registry.setBindActionCreators(() => {}) }).to.not.throw()
-      expect(() => { registry.setBindActionCreators(bindActionCreators) }).to.not.throw()
-    })
-  })
-
   describe('.add(register or array of registers)', () => {
     it('is chainable', () => {
       let register = new ReduxRegister('pets')

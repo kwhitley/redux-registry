@@ -56,10 +56,12 @@
     "mocha": "^2.5.3",
     "nyc": "^11.0.3",
     "react": "^15.6.1",
-    "react-redux": "^5.0.5",
-    "redux": "^3.7.2",
     "rimraf": "^2.3.4",
     "uglifyjs": "^2.4.10"
+  },
+  "peerDependencies": {
+    "redux": "^3.7.2",
+    "react-redux": "^5.0.6"
   },
   "npmName": "redux-registry",
   "babel": {

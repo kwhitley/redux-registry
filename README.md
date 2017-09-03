@@ -144,4 +144,4 @@ npm run test:watch
    to follow my coding syntax/style.
 
 ### Changelog
-- **v0.1.10** - Added more detail error messaging when incorrectly binding actions (branch not found)
+- **v1.1.10** - Added more detail error messaging when incorrectly binding actions (branch not found)

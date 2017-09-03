@@ -3,8 +3,13 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.connect = exports.ReduxRegistry = exports.ReduxRegister = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _redux = require('redux');
+
+var _reactRedux = require('react-redux');
 
 var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
   var _this = this;
@@ -241,10 +246,6 @@ var ReduxRegister = exports.ReduxRegister = function ReduxRegister(namespace) {
 var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
   var _this5 = this;
 
-  // INTERNAL REFERENCES TO BE SET VIA .setConnect() and .setBindActionCreators()
-  var _bindActionCreators = function _bindActionCreators() {};
-  var _connect = function _connect() {};
-
   // EXPOSED FOR EXPORTING
   this.registers = {};
   this.creators = {};
@@ -284,7 +285,7 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
         if (!branch) {
           throw Error('ReduxRegistry: could not find action branch named "' + actionRefs[0] + '".  Are you sure you spelled that correctly?');
         }
-        var dispatchers = _bindActionCreators(branch, dispatch);
+        var dispatchers = (0, _redux.bindActionCreators)(branch, dispatch);
 
         map[key] = actionRefs.length > 1 ? dispatchers[actionName] : dispatchers;
 
@@ -308,26 +309,8 @@ var ReduxRegistry = exports.ReduxRegistry = function ReduxRegistry() {
     }
 
     return function (component) {
-      return _connect(_this5.connectedProps(map.props), _this5.connectedDispatchers(map.dispatchers))(component);
+      return (0, _reactRedux.connect)(_this5.connectedProps(map.props), _this5.connectedDispatchers(map.dispatchers))(component);
     };
-  };
-
-  this.setConnect = function (fn) {
-    if (typeof fn !== 'function') {
-      throw Error('ReduxRegistry: .setConnect(connect) requires a "connect" function from "react-redux"');
-    }
-
-    _connect = fn;
-    return _this5;
-  };
-
-  this.setBindActionCreators = function (fn) {
-    if (typeof fn !== 'function') {
-      throw Error('ReduxRegistry: .setBindActionCreators(bindActionCreators) requires a "bindActionCreators" function from "redux"');
-    }
-
-    _bindActionCreators = fn;
-    return _this5;
   };
 
   this.add = function (register) {

@@ -1,3 +1,6 @@
+import { bindActionCreators as _bindActionCreators } from 'redux'
+import { connect as _connect } from 'react-redux'
+
 export const ReduxRegister = function(namespace) {
   const createWithAutoType = (name) => (creator) => (...args) => Object.assign({ type: name }, creator(...args))
   const namespacedName = (namespace) => (name) => `${namespace}:${name}`
@@ -187,10 +190,6 @@ export const ReduxRegister = function(namespace) {
 
 
 export const ReduxRegistry = function() {
-  // INTERNAL REFERENCES TO BE SET VIA .setConnect() and .setBindActionCreators()
-  let _bindActionCreators = () => {}
-  let _connect = () => {}
-
   // EXPOSED FOR EXPORTING
   this.registers = {}
   this.creators = {}
@@ -249,24 +248,6 @@ export const ReduxRegistry = function() {
 
     return (component) =>
       _connect(this.connectedProps(map.props), this.connectedDispatchers(map.dispatchers))(component)
-  }
-
-  this.setConnect = (fn) => {
-    if (typeof fn !== 'function') {
-      throw Error(`ReduxRegistry: .setConnect(connect) requires a "connect" function from "react-redux"`)
-    }
-
-    _connect = fn;
-    return this
-  }
-
-  this.setBindActionCreators = (fn) => {
-    if (typeof fn !== 'function') {
-      throw Error(`ReduxRegistry: .setBindActionCreators(bindActionCreators) requires a "bindActionCreators" function from "redux"`)
-    }
-
-    _bindActionCreators = fn
-    return this
   }
 
   this.add = (register) => {
